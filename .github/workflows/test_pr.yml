@@ -1,0 +1,26 @@
+name: Test PR
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+
+jobs:
+  test-and-run:
+    name: Test codebase and run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Run Tests
+        run: |
+          echo "Hola, me estoy ejecutando :D"
+          npm ci
+          npm run test
