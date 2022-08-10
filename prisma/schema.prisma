@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(16) @unique
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+  
+  @@index([name])
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  displayName String @db.VarChar(255)
+  email String @db.VarChar(255) @unique
+  username String @db.VarChar(24) @unique
+  password String @db.Text
+  roleId Int
+  role Role @relation(fields: [roleId], references: [id])
+  sensors Sensor[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([email, username])
+}
+
+model ConnectionType {
+  id Int @id @default(autoincrement())
+  protocol String @db.VarChar(24) @unique
+  sensors Sensor[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([protocol])
+}
+
+model PlotData {
+  id Int @id @default(autoincrement())
+  title String @db.VarChar(16) @default("Gráfica")
+  labelX String @db.VarChar(12)
+  labelY String @db.VarChar(12)
+  minValueY Int
+  maxValueY Int
+  optimalValue Decimal? @db.Decimal(16, 2)
+  optimalValueEntity String? @db.VarChar(50)
+  sensors Sensor[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([title])
+}
+
+model Sensor {
+  id Int @id @default(autoincrement())
+  uuid String @db.VarChar(36) @unique
+  name String @db.VarChar(64)
+  description String? @db.Text
+  measurementUnit String @db.VarChar(24)
+  latitude Decimal @db.Decimal(16, 10)
+  longitude Decimal @db.Decimal(16, 10)
+  iconUrl String? @db.Text
+  connectionTypeId Int
+  connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
+  connHostname String @db.Text
+  connPort Int
+  connUsername String? @db.VarChar(32)
+  connPassword String? @db.VarChar(64)
+  plotDataId Int
+  plotData PlotData @relation(fields: [plotDataId], references: [id])
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  metrics Metric[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([name])
+}
+
+model Metric {
+  uuid String @id @default(uuid())
+  value Decimal @db.Decimal(16, 2)
+  sensorId Int
+  sensor Sensor @relation(fields: [sensorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([value, sensorId])
+}
