@@ -3,6 +3,7 @@ import { checkEnvs } from './env/check';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
 import eTag from '@fastify/etag';
+import helmet from '@fastify/helmet';
 
 // check envs
 checkEnvs();
@@ -13,6 +14,7 @@ app.register(cors, {
   origin: '*',
 });
 app.register(eTag);
+app.register(helmet);
 app.register(prismaPlugin); // db plugin
 
 app.get('/roles', async () => {
