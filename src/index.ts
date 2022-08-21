@@ -2,6 +2,7 @@ import { prismaPlugin } from './plugins/prisma';
 import { checkEnvs } from './env/check';
 import fastify from 'fastify';
 import cors from '@fastify/cors';
+import eTag from '@fastify/etag';
 
 // check envs
 checkEnvs();
@@ -11,6 +12,7 @@ const app = fastify();
 app.register(cors, {
   origin: '*',
 });
+app.register(eTag);
 app.register(prismaPlugin); // db plugin
 
 app.get('/roles', async () => {

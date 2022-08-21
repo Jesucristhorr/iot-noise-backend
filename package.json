@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@fastify/cors": "^8.1.0",
+    "@fastify/etag": "^4.1.0",
     "@prisma/client": "^4.1.1",
     "fastify": "^4.4.0",
     "fastify-plugin": "^4.2.0",
