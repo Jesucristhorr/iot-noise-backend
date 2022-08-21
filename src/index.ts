@@ -1,13 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { prismaPlugin } from './plugins/prisma';
 import fastify from 'fastify';
-
-const prisma = new PrismaClient();
 
 const app = fastify();
 
+app.register(prismaPlugin); // db plugin
+
 app.get('/roles', async () => {
   return {
-    data: await prisma.role.findMany(),
+    data: await app.prisma.role.findMany(),
   };
 });
 
