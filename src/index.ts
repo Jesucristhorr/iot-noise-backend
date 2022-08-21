@@ -1,5 +1,9 @@
 import { prismaPlugin } from './plugins/prisma';
+import { checkEnvs } from './env/check';
 import fastify from 'fastify';
+
+// check envs
+checkEnvs();
 
 const app = fastify();
 
