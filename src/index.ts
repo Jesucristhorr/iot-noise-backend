@@ -6,7 +6,7 @@ import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 
 // check envs
-checkEnvs();
+const ENVS = checkEnvs();
 
 const app = fastify();
 
@@ -25,7 +25,7 @@ app.get('/roles', async () => {
 
 app.listen(
   {
-    port: 3000,
+    port: ENVS.PORT,
   },
-  () => console.log('wow')
+  () => console.log(`Server running in http://localhost:${ENVS.PORT}`)
 );
