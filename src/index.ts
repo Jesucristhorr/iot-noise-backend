@@ -54,6 +54,7 @@ app.get('/ping', async () => {
 app.listen(
     {
         port: ENVS.PORT,
+        host: '0.0.0.0',
     },
     () => app.log.info(`Server running in http://localhost:${ENVS.PORT}`)
 );
