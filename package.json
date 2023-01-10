@@ -49,7 +49,7 @@
         "npm-run-all": "^4.1.5",
         "pino-pretty": "^9.1.1",
         "prettier": "^2.7.1",
-        "prisma": "^4.1.1",
+        "prisma": "^4.8.1",
         "rimraf": "^3.0.2",
         "ts-node": "^10.8.1",
         "typescript": "^4.7.4"
@@ -60,7 +60,7 @@
         "@fastify/etag": "^4.1.0",
         "@fastify/helmet": "^9.1.0",
         "@fastify/jwt": "^6.5.0",
-        "@prisma/client": "^4.1.1",
+        "@prisma/client": "^4.8.1",
         "bcrypt": "^5.1.0",
         "fastify": "^4.4.0",
         "fastify-plugin": "^4.2.0",

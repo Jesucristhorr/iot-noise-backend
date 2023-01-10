@@ -25,7 +25,9 @@ CREATE TABLE `User` (
 
     UNIQUE INDEX `User_email_key`(`email`),
     UNIQUE INDEX `User_username_key`(`username`),
-    INDEX `User_email_username_idx`(`email`, `username`),
+    INDEX `User_email_idx`(`email`),
+    INDEX `User_username_idx`(`username`),
+    INDEX `User_roleId_idx`(`roleId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -83,6 +85,9 @@ CREATE TABLE `Sensor` (
 
     UNIQUE INDEX `Sensor_uuid_key`(`uuid`),
     INDEX `Sensor_name_idx`(`name`),
+    INDEX `Sensor_userId_idx`(`userId`),
+    INDEX `Sensor_connectionTypeId_idx`(`connectionTypeId`),
+    INDEX `Sensor_plotDataId_idx`(`plotDataId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -95,21 +100,6 @@ CREATE TABLE `Metric` (
     `updatedAt` DATETIME(3) NOT NULL,
     `deletedAt` DATETIME(3) NULL,
 
-    INDEX `Metric_value_sensorId_idx`(`value`, `sensorId`),
+    INDEX `Metric_sensorId_idx`(`sensorId`),
     PRIMARY KEY (`uuid`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- AddForeignKey
-ALTER TABLE `User` ADD CONSTRAINT `User_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `Role`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Sensor` ADD CONSTRAINT `Sensor_connectionTypeId_fkey` FOREIGN KEY (`connectionTypeId`) REFERENCES `ConnectionType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Sensor` ADD CONSTRAINT `Sensor_plotDataId_fkey` FOREIGN KEY (`plotDataId`) REFERENCES `PlotData`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Sensor` ADD CONSTRAINT `Sensor_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Metric` ADD CONSTRAINT `Metric_sensorId_fkey` FOREIGN KEY (`sensorId`) REFERENCES `Sensor`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
