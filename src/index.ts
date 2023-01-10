@@ -11,21 +11,21 @@ const ENVS = checkEnvs();
 const app = fastify();
 
 app.register(cors, {
-  origin: '*',
+    origin: '*',
 });
 app.register(eTag);
 app.register(helmet);
 app.register(prismaPlugin); // db plugin
 
 app.get('/roles', async () => {
-  return {
-    data: await app.prisma.role.findMany(),
-  };
+    return {
+        data: await app.prisma.role.findMany(),
+    };
 });
 
 app.listen(
-  {
-    port: ENVS.PORT,
-  },
-  () => console.log(`Server running in http://localhost:${ENVS.PORT}`)
+    {
+        port: ENVS.PORT,
+    },
+    () => console.log(`Server running in http://localhost:${ENVS.PORT}`)
 );
