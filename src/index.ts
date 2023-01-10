@@ -1,3 +1,4 @@
+import { loggerConfigurationByEnv } from './config/logger';
 import { prismaPlugin } from './plugins/prisma';
 import { checkEnvs } from './env/check';
 import fastify from 'fastify';
@@ -8,7 +9,7 @@ import helmet from '@fastify/helmet';
 // check envs
 const ENVS = checkEnvs();
 
-const app = fastify();
+const app = fastify({ logger: loggerConfigurationByEnv[ENVS.NODE_ENV] });
 
 app.register(cors, {
     origin: '*',
@@ -27,5 +28,5 @@ app.listen(
     {
         port: ENVS.PORT,
     },
-    () => console.log(`Server running in http://localhost:${ENVS.PORT}`)
+    () => app.log.info(`Server running in http://localhost:${ENVS.PORT}`)
 );

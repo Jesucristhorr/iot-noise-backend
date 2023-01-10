@@ -1,7 +1,7 @@
 import z from 'zod';
 
 export const serverSchema = z.object({
-    NODE_ENV: z.enum(['development', 'test', 'production']),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z
         .string()
         .regex(/[1-9]+/g)
