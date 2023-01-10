@@ -1,62 +1,67 @@
 {
-  "name": "iot-noise-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "prebuild": "rimraf dist",
-    "build:1-migrate-deploy": "prisma migrate deploy",
-    "build:2-generate": "prisma generate",
-    "build:3-build-server": "tsc",
-    "build": "run-s build:*",
-    "start": "node dist/index.js",
-    "db:1-migrate-dev": "prisma migrate dev",
-    "dev:1-prisma-studio": "prisma studio",
-    "dev:2-start-server": "nodemon",
-    "dev": "run-s db:* && run-p dev:*",
-    "lint": "eslint src/* --ext .ts",
-    "format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "test": "",
-    "prepare": "husky install"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Jesucristhorr/iot-noise-backend.git"
-  },
-  "author": "Jesús Moreira <jesucristhorr@pm.me>",
-  "contributors": [
-    "Jennifer Intriago <jennifergabriela52@gmail.com>"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/Jesucristhorr/iot-noise-backend/issues"
-  },
-  "homepage": "https://github.com/Jesucristhorr/iot-noise-backend#readme",
-  "devDependencies": {
-    "@types/node": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.28.0",
-    "@typescript-eslint/parser": "^5.28.0",
-    "dotenv": "^16.0.1",
-    "eslint": "^8.18.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^8.0.0",
-    "nodemon": "^2.0.20",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.7.1",
-    "prisma": "^4.1.1",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.8.1",
-    "typescript": "^4.7.4"
-  },
-  "dependencies": {
-    "@fastify/cors": "^8.1.0",
-    "@fastify/etag": "^4.1.0",
-    "@fastify/helmet": "^9.1.0",
-    "@prisma/client": "^4.1.1",
-    "fastify": "^4.4.0",
-    "fastify-plugin": "^4.2.0",
-    "mqtt": "^4.3.7",
-    "zod": "^3.18.0"
-  }
+    "name": "iot-noise-backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "scripts": {
+        "prebuild": "rimraf dist",
+        "build:1-migrate-deploy": "prisma migrate deploy",
+        "build:2-generate": "prisma generate",
+        "build:3-build-server": "tsc",
+        "build": "run-s build:*",
+        "start": "node dist/index.js",
+        "db:1-migrate-dev": "prisma migrate dev",
+        "dev:1-prisma-studio": "prisma studio",
+        "dev:2-start-server": "nodemon",
+        "dev": "run-s db:* && run-p dev:*",
+        "lint": "eslint src/* --ext .ts",
+        "format": "prettier --config .prettierrc 'src/**/*.ts' --write",
+        "test": "",
+        "prepare": "husky install"
+    },
+    "prisma": {
+        "seed": "ts-node --transpile-only prisma/seed.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Jesucristhorr/iot-noise-backend.git"
+    },
+    "author": "Jesús Moreira <jesucristhorr@pm.me>",
+    "contributors": [
+        "Jennifer Intriago <jennifergabriela52@gmail.com>"
+    ],
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Jesucristhorr/iot-noise-backend/issues"
+    },
+    "homepage": "https://github.com/Jesucristhorr/iot-noise-backend#readme",
+    "devDependencies": {
+        "@types/bcrypt": "^5.0.0",
+        "@types/node": "^18.0.0",
+        "@typescript-eslint/eslint-plugin": "^5.28.0",
+        "@typescript-eslint/parser": "^5.28.0",
+        "dotenv": "^16.0.1",
+        "eslint": "^8.18.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "husky": "^8.0.0",
+        "nodemon": "^2.0.20",
+        "npm-run-all": "^4.1.5",
+        "prettier": "^2.7.1",
+        "prisma": "^4.1.1",
+        "rimraf": "^3.0.2",
+        "ts-node": "^10.8.1",
+        "typescript": "^4.7.4"
+    },
+    "dependencies": {
+        "@fastify/cors": "^8.1.0",
+        "@fastify/etag": "^4.1.0",
+        "@fastify/helmet": "^9.1.0",
+        "@prisma/client": "^4.1.1",
+        "bcrypt": "^5.1.0",
+        "fastify": "^4.4.0",
+        "fastify-plugin": "^4.2.0",
+        "mqtt": "^4.3.7",
+        "zod": "^3.18.0"
+    }
 }
