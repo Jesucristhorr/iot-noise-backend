@@ -8,4 +8,5 @@ export const serverSchema = z.object({
         .default('3000')
         .transform((number) => Number(number)),
     DATABASE_URL: z.string().url(),
+    JWT_SECRET: z.string().min(4),
 });
