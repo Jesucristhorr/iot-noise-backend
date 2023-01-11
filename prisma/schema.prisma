@@ -28,6 +28,7 @@ model User {
   email String @db.VarChar(255) @unique
   username String @db.VarChar(24) @unique
   password String @db.Text
+  active Boolean @default(true)
   roleId Int
   role Role @relation(fields: [roleId], references: [id])
   sensors Sensor[]
@@ -38,6 +39,7 @@ model User {
   @@index([email])
   @@index([username])
   @@index([roleId])
+  @@index([active])
 }
 
 model ConnectionType {

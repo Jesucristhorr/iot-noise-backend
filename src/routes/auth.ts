@@ -7,8 +7,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
         '/login',
         { schema: { operationId: 'postLogin', body: fastify.zodRef('postLoginModel') } },
         async ({ body: { email, password } }, reply) => {
-            const user = await fastify.prisma.user.findUnique({
-                where: { email },
+            const user = await fastify.prisma.user.findFirst({
+                where: { email, active: true },
                 include: { role: true },
             });
 
