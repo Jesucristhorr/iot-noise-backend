@@ -42,11 +42,11 @@ for (const schema of schemas) {
 app.decorate('zodRef', $ref);
 
 // decorator for jwt authentication
-app.decorate<onRequestHookHandler>('jwtAuthentication', async (request, reply, done) => {
+app.decorate<onRequestHookHandler>('jwtAuthentication', async (request, reply) => {
     try {
         await request.jwtVerify();
 
-        return done();
+        return;
     } catch (err) {
         return reply.status(401).send({ code: 401, msg: 'Unauthorized' });
     }
