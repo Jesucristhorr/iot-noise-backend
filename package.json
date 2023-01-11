@@ -61,6 +61,7 @@
         "@fastify/helmet": "^9.1.0",
         "@fastify/jwt": "^6.5.0",
         "@prisma/client": "^4.8.1",
+        "@sendgrid/mail": "^7.7.0",
         "bcrypt": "^5.1.0",
         "fastify": "^4.4.0",
         "fastify-plugin": "^4.2.0",

@@ -9,4 +9,8 @@ export const serverSchema = z.object({
         .transform((number) => Number(number)),
     DATABASE_URL: z.string().url(),
     JWT_SECRET: z.string().min(4),
+    SENDGRID_API_KEY: z.string().min(6),
+    SENDGRID_DEFAULT_SENDER: z.string().email(),
+    SENDGRID_CONFIRM_EMAIL_TEMPLATE_ID: z.string().min(6),
+    BASE_API_URL: z.string().url(),
 });

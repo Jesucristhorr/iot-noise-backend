@@ -16,6 +16,8 @@ const ENVS = checkEnvs();
 
 const app = fastify({ logger: loggerConfigurationByEnv[ENVS.NODE_ENV] });
 
+app.log.debug(ENVS, 'ENVS:');
+
 // core plugins
 app.register(cors, {
     origin: '*',
