@@ -17,6 +17,9 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     createdAt: true,
                     updatedAt: true,
                 },
+                where: {
+                    deletedAt: null,
+                },
                 take: 10,
             });
 
