@@ -197,17 +197,15 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             const confirmationEmailSentRedisKey = `${userId}:confirmation_email_sent`;
 
-            const unixTimeToSendEmail = await fastify.redis.expiretime(
+            const unixTimeToSendEmail = await fastify.redis.ttl(
                 confirmationEmailSentRedisKey
             );
-            const datetimeToSendEmail = DateTime.fromSeconds(unixTimeToSendEmail);
-            const retryAfter = DateTime.now()
-                .until(datetimeToSendEmail)
-                .toDuration('seconds')
-                .toObject().seconds;
+            const datetimeToSendEmail = DateTime.now().plus({
+                seconds: unixTimeToSendEmail,
+            });
+            const retryAfter = unixTimeToSendEmail;
 
-            fastify.log.trace(unixTimeToSendEmail, 'Expiration unix time:');
-            fastify.log.debug(retryAfter, 'Retry-After header value:');
+            fastify.log.trace(unixTimeToSendEmail, 'Expiration time in seconds:');
 
             if (unixTimeToSendEmail > 0)
                 return reply
