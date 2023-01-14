@@ -18,7 +18,14 @@ export const postSignupModel = z.object({
 export type PostSignup = z.infer<typeof postSignupModel>;
 
 export const signupVerifyModel = z.object({
+    userId: z.number().int().nonnegative(),
     token: z.string().min(4),
 });
 
 export type SignupVerify = z.infer<typeof signupVerifyModel>;
+
+export const signupResendEmail = z.object({
+    userId: z.number().int().nonnegative(),
+});
+
+export type SignupResendEmail = z.infer<typeof signupResendEmail>;

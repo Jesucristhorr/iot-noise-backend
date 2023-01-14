@@ -37,6 +37,7 @@
     "homepage": "https://github.com/Jesucristhorr/iot-noise-backend#readme",
     "devDependencies": {
         "@types/bcrypt": "^5.0.0",
+        "@types/luxon": "^3.2.0",
         "@types/node": "^18.0.0",
         "@typescript-eslint/eslint-plugin": "^5.28.0",
         "@typescript-eslint/parser": "^5.28.0",
@@ -67,6 +68,7 @@
         "fastify": "^4.4.0",
         "fastify-plugin": "^4.2.0",
         "fastify-zod": "^1.2.0",
+        "luxon": "^3.2.1",
         "mqtt": "^4.3.7",
         "zod": "^3.18.0"
     }

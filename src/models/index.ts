@@ -1,9 +1,15 @@
-import { postLoginModel, postSignupModel, signupVerifyModel } from './auth';
+import {
+    postLoginModel,
+    postSignupModel,
+    signupVerifyModel,
+    signupResendEmail,
+} from './auth';
 
-export type { PostLogin, PostSignup, SignupVerify } from './auth';
+export type { PostLogin, PostSignup, SignupVerify, SignupResendEmail } from './auth';
 
 export default {
     postLoginModel,
     postSignupModel,
     signupVerifyModel,
+    signupResendEmail,
 };

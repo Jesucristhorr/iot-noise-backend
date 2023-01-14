@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'crypto';
-import { PostLogin, PostSignup, SignupVerify } from '../models';
+import { DateTime } from 'luxon';
+import { PostLogin, PostSignup, SignupResendEmail, SignupVerify } from '../models';
 import { envs as ENVS } from '../env';
 import { hash, compare } from 'bcrypt';
 import { sendEmail } from '../helpers/email';
@@ -97,16 +98,18 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             fastify.log.debug('User created in database!');
 
+            const prefixConfirmationToken = `${newUser.id}:confirmation_email`;
             const confirmationToken = randomBytes(16).toString('hex');
+            const confirmationTokenRedisKey = `${prefixConfirmationToken}:${confirmationToken}`;
 
             await fastify.redis
                 .multi()
-                .hset(confirmationToken, { id: newUser.id })
-                .expire(confirmationToken, 3600)
+                .hset(confirmationTokenRedisKey, { id: newUser.id })
+                .expire(confirmationTokenRedisKey, 3600)
                 .exec();
 
             const dynamicEmailData = {
-                iot_c2a_link: `${ENVS.BASE_API_URL}/v1/auth/signup/verify?token=${confirmationToken}`,
+                iot_c2a_link: `${ENVS.BASE_API_URL}/v1/auth/signup/verify?userId=${newUser.id}&token=${confirmationToken}`,
             };
 
             fastify.log.trace(
@@ -141,8 +144,10 @@ const routes: FastifyPluginAsync = async (fastify) => {
     fastify.get<{ Querystring: SignupVerify }>(
         '/signup/verify',
         { schema: { querystring: fastify.zodRef('signupVerifyModel') } },
-        async ({ query: { token } }, reply) => {
-            const idAsString = await fastify.redis.hget(token, 'id');
+        async ({ query: { userId, token } }, reply) => {
+            const prefixConfirmationToken = `${userId}:confirmation_email`;
+            const confirmationTokenRedisKey = `${prefixConfirmationToken}:${token}`;
+            const idAsString = await fastify.redis.hget(confirmationTokenRedisKey, 'id');
 
             fastify.log.debug(idAsString, 'Id retrieved by token:');
 
@@ -158,11 +163,112 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             fastify.log.debug('User activated successfully!');
 
-            await fastify.redis.hdel(token, 'id');
+            await fastify.redis.hdel(confirmationTokenRedisKey, 'id');
 
             fastify.log.trace(token, 'Token deleted:');
 
             return reply.send({ msg: 'User activated.' });
+        }
+    );
+
+    fastify.post<{ Body: SignupResendEmail }>(
+        '/signup/resend-confirmation-email',
+        {
+            onRequest: [fastify.jwtAuthentication],
+            schema: { body: fastify.zodRef('signupResendEmail') },
+        },
+        async ({ body: { userId } }, reply) => {
+            const user = await fastify.prisma.user.findFirst({
+                where: { id: userId, deletedAt: null },
+                select: {
+                    id: true,
+                    email: true,
+                    active: true,
+                },
+            });
+
+            if (!user)
+                return reply
+                    .status(404)
+                    .send({ code: 404, msg: `User ${userId} not found` });
+
+            if (user.active)
+                return reply.send({ msg: `User ${userId} already confirmed its email` });
+
+            const confirmationEmailSentRedisKey = `${userId}:confirmation_email_sent`;
+
+            const unixTimeToSendEmail = await fastify.redis.expiretime(
+                confirmationEmailSentRedisKey
+            );
+            const datetimeToSendEmail = DateTime.fromSeconds(unixTimeToSendEmail);
+            const retryAfter = DateTime.now()
+                .until(datetimeToSendEmail)
+                .toDuration('seconds')
+                .toObject().seconds;
+
+            fastify.log.trace(unixTimeToSendEmail, 'Expiration unix time:');
+            fastify.log.debug(retryAfter, 'Retry-After header value:');
+
+            if (unixTimeToSendEmail > 0)
+                return reply
+                    .status(429)
+                    .header('Retry-After', retryAfter ?? 0)
+                    .send({
+                        code: 429,
+                        retryAfter: retryAfter ?? 0,
+                        msg: `The user ${userId} requested a confirmation email not too long ago. Wait until ${datetimeToSendEmail.toISO()}`,
+                    });
+
+            const prefixConfirmationToken = `${userId}:confirmation_email`;
+
+            const [count, previousKeys] = await fastify.redis.scan(
+                0,
+                'MATCH',
+                `${prefixConfirmationToken}:*`
+            );
+
+            fastify.log.trace(count, `Scan count:`);
+            fastify.log.trace(previousKeys, `Scan keys result:`);
+
+            if (previousKeys.length > 0) await fastify.redis.del(...previousKeys);
+
+            const confirmationToken = randomBytes(16).toString('hex');
+            const confirmationTokenRedisKey = `${prefixConfirmationToken}:${confirmationToken}`;
+
+            await fastify.redis
+                .multi()
+                .hset(confirmationTokenRedisKey, { id: userId })
+                .expire(confirmationTokenRedisKey, 3600)
+                .exec();
+
+            const dynamicEmailData = {
+                iot_c2a_link: `${ENVS.BASE_API_URL}/v1/auth/signup/verify?userId=${userId}&token=${confirmationToken}`,
+            };
+
+            fastify.log.trace(
+                `This is the confirmation link to be sent: ${dynamicEmailData.iot_c2a_link}`
+            );
+
+            const [emailError] = await sendEmail({
+                to: user.email,
+                templateId: ENVS.SENDGRID_CONFIRM_EMAIL_TEMPLATE_ID,
+                dynamicData: dynamicEmailData,
+            });
+
+            if (emailError)
+                fastify.log.error(emailError, 'Error sending confirmation email:');
+
+            await fastify.redis
+                .multi()
+                .incr(confirmationEmailSentRedisKey)
+                .expire(confirmationEmailSentRedisKey, 300)
+                .exec();
+
+            fastify.log.trace(`Confirmation email timeout set`);
+
+            return reply.send({
+                msg: 'Confirmation email sent successfully.',
+            });
         }
     );
 };
