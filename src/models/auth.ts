@@ -18,7 +18,6 @@ export const postSignupModel = z.object({
 export type PostSignup = z.infer<typeof postSignupModel>;
 
 export const signupVerifyModel = z.object({
-    id: z.number().int().nonnegative(),
     token: z.string().min(4),
 });
 

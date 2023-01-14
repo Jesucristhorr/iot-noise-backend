@@ -1,4 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
+import { randomBytes } from 'crypto';
 import { PostLogin, PostSignup, SignupVerify } from '../models';
 import { envs as ENVS } from '../env';
 import { hash, compare } from 'bcrypt';
@@ -96,11 +97,16 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             fastify.log.debug('User created in database!');
 
-            // TODO: Change this to a real token
-            const confirmationToken = 'dummy';
+            const confirmationToken = randomBytes(16).toString('hex');
+
+            await fastify.redis
+                .multi()
+                .hset(confirmationToken, { id: newUser.id })
+                .expire(confirmationToken, 3600)
+                .exec();
 
             const dynamicEmailData = {
-                iot_c2a_link: `${ENVS.BASE_API_URL}/v1/auth/signup/verify?id=${newUser.id}&token=${confirmationToken}`,
+                iot_c2a_link: `${ENVS.BASE_API_URL}/v1/auth/signup/verify?token=${confirmationToken}`,
             };
 
             fastify.log.trace(
@@ -116,6 +122,16 @@ const routes: FastifyPluginAsync = async (fastify) => {
             if (emailError)
                 fastify.log.error(emailError, 'Error sending confirmation email:');
 
+            const confirmationEmailSentRedisKey = `${newUser.id}:confirmation_email_sent`;
+
+            await fastify.redis
+                .multi()
+                .incr(confirmationEmailSentRedisKey)
+                .expire(confirmationEmailSentRedisKey, 300)
+                .exec();
+
+            fastify.log.trace(`Confirmation email timeout set`);
+
             return reply.send({
                 msg: 'User created. Please activate your account via email',
             });
@@ -125,10 +141,26 @@ const routes: FastifyPluginAsync = async (fastify) => {
     fastify.get<{ Querystring: SignupVerify }>(
         '/signup/verify',
         { schema: { querystring: fastify.zodRef('signupVerifyModel') } },
-        async ({ query: { id } }, reply) => {
-            // TODO: Add Token validation
+        async ({ query: { token } }, reply) => {
+            const idAsString = await fastify.redis.hget(token, 'id');
+
+            fastify.log.debug(idAsString, 'Id retrieved by token:');
+
+            if (!idAsString)
+                return reply.status(401).send({ code: 401, msg: 'Invalid token' });
+
+            const id = +idAsString;
+
+            if (isNaN(id))
+                return reply.status(401).send({ code: 401, msg: 'Invalid token' });
 
             await fastify.prisma.user.update({ where: { id }, data: { active: true } });
+
+            fastify.log.debug('User activated successfully!');
+
+            await fastify.redis.hdel(token, 'id');
+
+            fastify.log.trace(token, 'Token deleted:');
 
             return reply.send({ msg: 'User activated.' });
         }

@@ -8,6 +8,7 @@ import cors from '@fastify/cors';
 import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt from '@fastify/jwt';
+import fRedis from '@fastify/redis';
 import path from 'path';
 import { buildJsonSchemas } from 'fastify-zod';
 
@@ -25,6 +26,13 @@ app.register(cors, {
 app.register(eTag);
 app.register(helmet);
 app.register(prismaPlugin); // db plugin
+app.register(fRedis, {
+    host: ENVS.REDIS_HOST,
+    port: ENVS.REDIS_PORT,
+    username: ENVS.REDIS_USERNAME,
+    password: ENVS.REDIS_PASSWORD,
+    db: ENVS.REDIS_DATABASE_NUMBER,
+}); // redis plugin
 app.register(fJwt, {
     secret: ENVS.JWT_SECRET,
     formatUser: ({ user }) => ({
