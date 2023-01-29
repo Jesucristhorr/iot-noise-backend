@@ -121,6 +121,12 @@ declare module '@fastify/jwt' {
     }
 }
 
+declare module 'socket.io' {
+    interface Socket {
+        user: UserType;
+    }
+}
+
 // LISTENERS
 app.ready((err) => {
     if (err) throw err;
@@ -133,11 +139,9 @@ app.ready((err) => {
                 },
             } = socket;
 
-            const user = app.jwt.verify(token as string) as UserType;
+            const { user } = app.jwt.verify(token as string) as { user: UserType };
 
-            app.log.info(user, 'User decoded:');
-
-            socket.handshake.auth.user = user;
+            socket.user = user;
 
             return next();
         } catch (err) {
@@ -146,7 +150,7 @@ app.ready((err) => {
     });
 
     app.io.on('connection', (socket) => {
-        const user = socket.handshake?.auth?.user as UserType | undefined;
+        const user = socket.user as UserType | undefined;
 
         if (!user) {
             socket.disconnect();
@@ -154,8 +158,6 @@ app.ready((err) => {
         }
 
         app.log.info(user, 'User for connection:');
-
-        app.log.info(`typeof user ${typeof user}`);
 
         app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
     });
