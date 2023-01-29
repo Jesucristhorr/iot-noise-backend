@@ -5,6 +5,8 @@ import { checkEnvs } from './env/check';
 import fastify, { onRequestHookHandler } from 'fastify';
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
+import fSocket from 'fastify-socket.io';
+import fCron from 'fastify-cron';
 import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt from '@fastify/jwt';
@@ -39,15 +41,40 @@ app.register(fJwt, {
         ...user,
     }),
 });
+app.register(fSocket); // socket.io support plugin
+app.register(fCron, {
+    jobs: [
+        {
+            cronTime: '* * * * *',
+            onTick: (server) => {
+                app.log.info('Test data emitted');
+                server.io.emit('sensor-data', {
+                    lat: Math.random() * 4,
+                    lng: Math.random() * 6,
+                    data: 'test',
+                });
+            },
+        },
+    ],
+}); // cron jobs support
 
+// SCHEMAS
 const { $ref, schemas } = buildJsonSchemas(models);
 
 for (const schema of schemas) {
     app.addSchema(schema);
 }
 
-// DECORATORS
+// LISTENERS
+app.ready((err) => {
+    if (err) throw err;
 
+    app.io.on('connection', (socket) =>
+        app.log.info(`Socket connected successfully: ${socket.id}`)
+    );
+});
+
+// DECORATORS
 // decorator for zod schemas
 app.decorate('zodRef', $ref);
 
