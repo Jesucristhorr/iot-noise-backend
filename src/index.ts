@@ -135,6 +135,8 @@ app.ready((err) => {
 
             const user = app.jwt.verify(token as string) as UserType;
 
+            app.log.info(user, 'User decoded:');
+
             socket.handshake.auth.user = user;
 
             return next();
