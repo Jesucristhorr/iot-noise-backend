@@ -50,15 +50,16 @@ app.register(fSocket, {
 app.register(fCron, {
     jobs: [
         {
-            cronTime: '* * * * *',
+            cronTime: '*/2 * * * *',
             onTick: (server) => {
-                app.log.info('Test data emitted');
+                server.log.info('Test data emitted');
                 server.io.emit('sensor-data', {
                     lat: Math.random() * 4,
                     lng: Math.random() * 6,
                     data: 'test',
                 });
             },
+            startWhenReady: true,
         },
     ],
 }); // cron jobs support
