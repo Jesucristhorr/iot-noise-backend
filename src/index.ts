@@ -153,6 +153,8 @@ app.ready((err) => {
             return;
         }
 
+        app.log.info(user, 'User for connection:');
+
         app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
     });
 });
