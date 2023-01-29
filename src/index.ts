@@ -41,7 +41,12 @@ app.register(fJwt, {
         ...user,
     }),
 });
-app.register(fSocket); // socket.io support plugin
+app.register(fSocket, {
+    cors: {
+        origin: '*',
+        credentials: true,
+    },
+}); // socket.io support plugin
 app.register(fCron, {
     jobs: [
         {
