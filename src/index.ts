@@ -9,7 +9,7 @@ import fSocket from 'fastify-socket.io';
 import fCron from 'fastify-cron';
 import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
-import fJwt from '@fastify/jwt';
+import fJwt, { UserType } from '@fastify/jwt';
 import fRedis from '@fastify/redis';
 import path from 'path';
 import { buildJsonSchemas } from 'fastify-zod';
@@ -71,15 +71,6 @@ for (const schema of schemas) {
     app.addSchema(schema);
 }
 
-// LISTENERS
-app.ready((err) => {
-    if (err) throw err;
-
-    app.io.on('connection', (socket) =>
-        app.log.info(`Socket connected successfully: ${socket.id}`)
-    );
-});
-
 // DECORATORS
 // decorator for zod schemas
 app.decorate('zodRef', $ref);
@@ -129,6 +120,40 @@ declare module '@fastify/jwt' {
         }; // user type is return type of `request.user` object
     }
 }
+
+// LISTENERS
+app.ready((err) => {
+    if (err) throw err;
+
+    app.io.use((socket, next) => {
+        try {
+            const {
+                handshake: {
+                    auth: { token = '' },
+                },
+            } = socket;
+
+            const user = app.jwt.verify(token as string) as UserType;
+
+            socket.handshake.auth.user = user;
+
+            return next();
+        } catch (err) {
+            return next(new Error('Unauthorized access to socket!'));
+        }
+    });
+
+    app.io.on('connection', (socket) => {
+        const user = socket.handshake?.auth?.user as UserType | undefined;
+
+        if (!user) {
+            socket.disconnect();
+            return;
+        }
+
+        app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
+    });
+});
 
 // autoload routes
 app.register(autoload, {
