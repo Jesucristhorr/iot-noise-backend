@@ -133,7 +133,7 @@ app.ready((err) => {
                 },
             } = socket;
 
-            const user = app.jwt.verify(token as string) as UserType;
+            const user = JSON.parse(app.jwt.verify(token as string)) as UserType;
 
             app.log.info(user, 'User decoded:');
 
