@@ -50,7 +50,7 @@ app.register(fSocket, {
 app.register(fCron, {
     jobs: [
         {
-            cronTime: '*/2 * * * *',
+            cronTime: '* * * * *',
             onTick: (server) => {
                 server.log.info('Test data emitted');
                 server.io.emit('sensor-data', {
@@ -150,5 +150,8 @@ app.listen(
         port: ENVS.PORT,
         host: '0.0.0.0',
     },
-    () => app.log.info(`Server running in http://localhost:${ENVS.PORT}`)
+    () => {
+        app.cron.startAllJobs();
+        app.log.info(`Server running in http://localhost:${ENVS.PORT}`);
+    }
 );
