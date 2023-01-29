@@ -133,7 +133,7 @@ app.ready((err) => {
                 },
             } = socket;
 
-            const user = JSON.parse(app.jwt.verify(token as string)) as UserType;
+            const user = app.jwt.verify(token as string) as UserType;
 
             app.log.info(user, 'User decoded:');
 
@@ -154,6 +154,8 @@ app.ready((err) => {
         }
 
         app.log.info(user, 'User for connection:');
+
+        app.log.info(`typeof user ${typeof user}`);
 
         app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
     });
