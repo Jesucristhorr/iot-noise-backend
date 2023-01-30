@@ -14,17 +14,23 @@ const clients: mqtt.AsyncMqttClient[] = [];
         include: { connectionType: true },
     });
 
+    console.log('got sensors');
+
     for (let i = 0; i < sensors.length; i++) {
         const sensor = sensors[i];
 
         if (!sensor) continue;
 
-        const mqttClient = await mqtt.connectAsync(sensor.connectionUrl, {
-            username: sensor.connectionUsername,
-            password: sensor.connectionPassword,
-            protocolId: 'MQTT',
-            protocol: 'mqtts',
-        });
+        const mqttClient = await mqtt
+            .connectAsync(sensor.connectionUrl, {
+                username: sensor.connectionUsername,
+                password: sensor.connectionPassword,
+                protocolId: 'MQTT',
+                protocol: 'mqtts',
+            })
+            .catch((err) => console.error('couldnt connect', err));
+
+        if (!mqttClient) continue;
 
         await mqttClient.subscribe('noise');
 

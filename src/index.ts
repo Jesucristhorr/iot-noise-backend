@@ -10,7 +10,7 @@ import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt, { UserType } from '@fastify/jwt';
 import fRedis from '@fastify/redis';
-import { Worker } from 'worker_threads';
+import { Worker, SHARE_ENV } from 'worker_threads';
 import path from 'path';
 import { buildJsonSchemas } from 'fastify-zod';
 
@@ -150,6 +150,7 @@ app.ready((err) => {
         workerData: {
             path: './connectMQTT.js',
         },
+        env: SHARE_ENV,
     });
 
     worker.on('message', (value) => {
@@ -163,6 +164,11 @@ app.ready((err) => {
             measurement: value.values.noiseLevel,
             timestamp: Date.now(),
         });
+    });
+
+    worker.on('error', (err) => {
+        // TODO: Handle exponential backoff
+        app.log.error(err, 'Something went wrong when creating worker:');
     });
 });
 
