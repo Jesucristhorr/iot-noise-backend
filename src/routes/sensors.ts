@@ -1,6 +1,6 @@
 import { PostSensor } from '../models/sensors';
 import { FastifyPluginAsync } from 'fastify';
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { Worker } from 'worker_threads';
 import path from 'path';
 
@@ -35,7 +35,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             await fastify.prisma.sensor.create({
                 data: {
-                    uuid: uuid.v4(),
+                    uuid: uuidv4(),
                     name,
                     description,
                     latitude,
