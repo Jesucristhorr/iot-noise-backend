@@ -1,10 +1,11 @@
 import { parentPort } from 'worker_threads';
 import { PrismaClient } from '@prisma/client';
 import mqtt from 'async-mqtt';
+import type { AsyncMqttClient } from 'async-mqtt';
 
 const prisma = new PrismaClient();
 
-const clients: mqtt.AsyncMqttClient[] = [];
+const clients: AsyncMqttClient[] = [];
 
 (async () => {
     console.log('hey im the main worker now');
