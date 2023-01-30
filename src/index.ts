@@ -148,7 +148,7 @@ app.ready((err) => {
 
     const worker = new Worker(path.join(__dirname, 'workers', 'init.js'), {
         workerData: {
-            path: './connectMQTT.js',
+            path: './connectAll.js',
         },
         env: SHARE_ENV,
     });
