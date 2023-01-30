@@ -6,10 +6,12 @@ import {
 } from './auth';
 import { getUsersModel } from './users';
 import { postSensorModel } from './sensors';
+import { getMetricsModel } from './metrics';
 
 export type { PostLogin, PostSignup, SignupVerify, SignupResendEmail } from './auth';
 export type { GetUsers } from './users';
 export type { PostSensor } from './sensors';
+export type { GetMetrics } from './metrics';
 
 export default {
     postLoginModel,
@@ -18,4 +20,5 @@ export default {
     signupResendEmail,
     getUsersModel,
     postSensorModel,
+    getMetricsModel,
 };

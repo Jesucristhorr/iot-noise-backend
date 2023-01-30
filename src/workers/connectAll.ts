@@ -2,6 +2,7 @@ import { parentPort } from 'worker_threads';
 import { PrismaClient } from '@prisma/client';
 import mqtt from 'async-mqtt';
 import type { AsyncMqttClient } from 'async-mqtt';
+import { v4 as uuidV4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -35,7 +36,7 @@ const clients: AsyncMqttClient[] = [];
 
         await mqttClient.subscribe('noise');
 
-        mqttClient.on('message', (topic, payload) => {
+        mqttClient.on('message', async (topic, payload) => {
             try {
                 const data = JSON.parse(payload.toString('utf-8'));
                 parentPort?.postMessage({
@@ -45,6 +46,18 @@ const clients: AsyncMqttClient[] = [];
                         sensorId: sensor.id,
                         name: sensor.name,
                         locationName: sensor.locationName,
+                    },
+                });
+
+                await prisma.metric.create({
+                    data: {
+                        value: data.noiseLevel,
+                        sensor: {
+                            connect: {
+                                id: sensor.id,
+                            },
+                        },
+                        uuid: uuidV4(),
                     },
                 });
             } catch (err) {

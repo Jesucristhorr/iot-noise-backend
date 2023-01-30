@@ -1,7 +1,7 @@
 import { PostSensor } from '../models/sensors';
 import { FastifyPluginAsync } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { Worker } from 'worker_threads';
+import { Worker, SHARE_ENV } from 'worker_threads';
 import path from 'path';
 
 const workers: Worker[] = [];
@@ -69,12 +69,14 @@ const routes: FastifyPluginAsync = async (fastify) => {
             const worker = new Worker(path.join(__dirname, '..', 'workers', 'init.js'), {
                 workerData: {
                     path: './connectMQTT.js',
+                    sensorId: sensorCreated.id,
                     connectionUrl: connection.connectionUrl,
                     protocolId: 'MQTT',
                     protocol: 'mqtts',
                     username: connection.connectionUsername,
                     password: connection.connectionPassword,
                 },
+                env: SHARE_ENV,
             });
 
             workers.push(worker);

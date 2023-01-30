@@ -109,4 +109,5 @@ model Metric {
   deletedAt DateTime?
 
   @@index([sensorId])
+  @@index([createdAt])
 }
