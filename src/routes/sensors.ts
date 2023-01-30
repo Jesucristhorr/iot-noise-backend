@@ -70,7 +70,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 workerData: {
                     path: './connectMQTT.js',
                     connectionUrl: connection.connectionUrl,
-                    protocolId: connection.protocolId,
+                    protocolId: 'MQTT',
                     protocol: 'mqtts',
                     username: connection.connectionUsername,
                     password: connection.connectionPassword,
@@ -81,7 +81,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             worker.on('message', (value) => {
                 fastify.io.emit('sensor-data', {
-                    sensorId: 'ESP32-TEST',
+                    sensorId: value.values.sensorId,
                     lat: value.values.lat,
                     lng: value.values.lng,
                     measurement: value.values.noiseLevel,
