@@ -10,6 +10,8 @@ const wData = workerData as {
 };
 
 (async () => {
+    console.log('hey im a new worker');
+
     const mqttClient = await mqtt.connectAsync(wData.connectionUrl, {
         username: wData.username,
         password: wData.password,

@@ -10,8 +10,11 @@ import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt, { UserType } from '@fastify/jwt';
 import fRedis from '@fastify/redis';
+import { Worker } from 'worker_threads';
 import path from 'path';
 import { buildJsonSchemas } from 'fastify-zod';
+
+// TODO: Add socket auth
 
 // check envs
 const ENVS = checkEnvs();
@@ -114,23 +117,23 @@ declare module 'socket.io' {
 app.ready((err) => {
     if (err) throw err;
 
-    app.io.use((socket, next) => {
-        try {
-            const {
-                handshake: {
-                    auth: { token = '' },
-                },
-            } = socket;
+    // app.io.use((socket, next) => {
+    //     try {
+    //         const {
+    //             handshake: {
+    //                 auth: { token = '' },
+    //             },
+    //         } = socket;
 
-            const { user } = app.jwt.verify(token as string) as { user: UserType };
+    //         const { user } = app.jwt.verify(token as string) as { user: UserType };
 
-            socket.user = user;
+    //         socket.user = user;
 
-            return next();
-        } catch (err) {
-            return next(new Error('Unauthorized access to socket!'));
-        }
-    });
+    //         return next();
+    //     } catch (err) {
+    //         return next(new Error('Unauthorized access to socket!'));
+    //     }
+    // });
 
     app.io.on('connection', (socket) => {
         const user = socket.user as UserType | undefined;
@@ -141,6 +144,25 @@ app.ready((err) => {
         }
 
         app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
+    });
+
+    const worker = new Worker(path.join(__dirname, 'workers', 'init.js'), {
+        workerData: {
+            path: './connectMQTT.js',
+        },
+    });
+
+    worker.on('message', (value) => {
+        app.log.info(value, 'emit value from mqtt:');
+        app.io.emit('sensor-data', {
+            sensorId: value.values.sensorId,
+            name: value.values.name,
+            locationName: value.values.locationName,
+            lat: +value.values.lat,
+            lng: +value.values.lng,
+            measurement: value.values.noiseLevel,
+            timestamp: Date.now(),
+        });
     });
 });
 

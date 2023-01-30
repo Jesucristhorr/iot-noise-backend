@@ -28,12 +28,12 @@ const routes: FastifyPluginAsync = async (fastify) => {
             },
             reply
         ) => {
-            if (user.role.name !== 'System')
+            if (['System', 'Admin'].includes(user.role.name))
                 return reply
                     .status(403)
                     .send({ code: 403, msg: `You don't have access to this resource` });
 
-            await fastify.prisma.sensor.create({
+            const sensorCreated = await fastify.prisma.sensor.create({
                 data: {
                     uuid: uuidv4(),
                     name,
@@ -80,12 +80,21 @@ const routes: FastifyPluginAsync = async (fastify) => {
             workers.push(worker);
 
             worker.on('message', (value) => {
+                fastify.log.info(value, 'emit value from mqtt:');
                 fastify.io.emit('sensor-data', {
-                    sensorId: value.values.sensorId,
-                    lat: value.values.lat,
-                    lng: value.values.lng,
+                    sensorId: sensorCreated.id,
+                    name: sensorCreated.name,
+                    locationName: sensorCreated.locationName,
+                    lat: +value.values.lat,
+                    lng: +value.values.lng,
                     measurement: value.values.noiseLevel,
+                    timestamp: Date.now(),
                 });
+            });
+
+            worker.on('error', (err) => {
+                // TODO: Handle exponential backoff
+                fastify.log.error(err, 'Something went wrong when creating worker:');
             });
 
             return {
@@ -93,6 +102,17 @@ const routes: FastifyPluginAsync = async (fastify) => {
             };
         }
     );
+
+    fastify.get('/', async () => {
+        const sensors = await fastify.prisma.sensor.findMany({
+            where: { deletedAt: null },
+            include: { connectionType: true },
+        });
+
+        return {
+            sensors,
+        };
+    });
 };
 
 export const autoPrefix = '/sensors';
