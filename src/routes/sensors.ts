@@ -68,7 +68,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             const worker = new Worker(path.join(__dirname, '..', 'workers', 'init.js'), {
                 workerData: {
-                    path: './connectMQTT.ts',
+                    path: './connectMQTT.js',
                     connectionUrl: connection.connectionUrl,
                     protocolId: connection.protocolId,
                     protocol: 'mqtts',
