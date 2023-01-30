@@ -28,7 +28,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
             },
             reply
         ) => {
-            if (['System', 'Admin'].includes(user.role.name))
+            if (!['System', 'Admin'].includes(user.role.name))
                 return reply
                     .status(403)
                     .send({ code: 403, msg: `You don't have access to this resource` });
