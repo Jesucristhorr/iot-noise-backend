@@ -136,14 +136,14 @@ app.ready((err) => {
     // });
 
     app.io.on('connection', (socket) => {
-        const user = socket.user as UserType | undefined;
+        // const user = socket.user as UserType | undefined;
 
-        if (!user) {
-            socket.disconnect();
-            return;
-        }
+        // if (!user) {
+        //     socket.disconnect();
+        //     return;
+        // }
 
-        app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
+        app.log.info(`Socket connected successfully: ${socket.id}`);
     });
 
     const worker = new Worker(path.join(__dirname, 'workers', 'init.js'), {
