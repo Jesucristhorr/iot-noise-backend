@@ -11,6 +11,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     gte: from,
                     lte: to,
                 },
+                deletedAt: null,
             };
 
             if (sensorId) where.sensorId = sensorId;
