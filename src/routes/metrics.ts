@@ -6,7 +6,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
         '/',
         { schema: { querystring: fastify.zodRef('getMetricsModel') } },
         async ({ query: { from, to, sensorId } }) => {
-            const where: Record<string, any> = {
+            const where: Record<string, object | number | null> = {
                 createdAt: {
                     gte: from,
                     lte: to,
