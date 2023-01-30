@@ -6,7 +6,6 @@ import fastify, { onRequestHookHandler } from 'fastify';
 import autoload from '@fastify/autoload';
 import cors from '@fastify/cors';
 import fSocket from 'fastify-socket.io';
-import fCron from 'fastify-cron';
 import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt, { UserType } from '@fastify/jwt';
@@ -47,22 +46,6 @@ app.register(fSocket, {
         credentials: true,
     },
 }); // socket.io support plugin
-app.register(fCron, {
-    jobs: [
-        {
-            cronTime: '* * * * *',
-            onTick: (server) => {
-                server.log.info('Test data emitted');
-                server.io.emit('sensor-data', {
-                    lat: Math.random() * 4,
-                    lng: Math.random() * 6,
-                    data: 'test',
-                });
-            },
-            startWhenReady: true,
-        },
-    ],
-}); // cron jobs support
 
 // SCHEMAS
 const { $ref, schemas } = buildJsonSchemas(models);
@@ -157,8 +140,6 @@ app.ready((err) => {
             return;
         }
 
-        app.log.info(user, 'User for connection:');
-
         app.log.info(`Socket connected successfully: ${socket.id} | User id: ${user.id}`);
     });
 });
@@ -184,7 +165,6 @@ app.listen(
         host: '0.0.0.0',
     },
     () => {
-        app.cron.startAllJobs();
         app.log.info(`Server running in http://localhost:${ENVS.PORT}`);
     }
 );

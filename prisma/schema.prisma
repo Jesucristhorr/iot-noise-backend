@@ -74,17 +74,16 @@ model Sensor {
   id Int @id @default(autoincrement())
   uuid String @db.VarChar(36) @unique
   name String @db.VarChar(64)
-  description String? @db.Text
+  description String? @db.VarChar(255)
   measurementUnit String @db.VarChar(24)
   latitude Decimal @db.Decimal(16, 10)
   longitude Decimal @db.Decimal(16, 10)
-  iconUrl String? @db.Text
+  locationName String @db.VarChar(100)
   connectionTypeId Int
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
-  connHostname String @db.Text
-  connPort Int
-  connUsername String? @db.VarChar(32)
-  connPassword String? @db.VarChar(64)
+  connectionUrl String @db.VarChar(255)
+  connectionUsername String @db.VarChar(100)
+  connectionPassword String @db.VarChar(100)
   plotDataId Int
   plotData PlotData @relation(fields: [plotDataId], references: [id])
   userId Int

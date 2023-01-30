@@ -23,6 +23,7 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "resolveJsonModule": true,
+        "allowJs": true,
         "baseUrl": ".",
         "typeRoots": ["./environment.d.ts"]
     },

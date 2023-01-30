@@ -44,6 +44,20 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
     });
 
     console.log('Done!');
+    console.log('Creating default connection types...');
+
+    await prisma.connectionType.createMany({
+        data: [
+            {
+                protocol: 'MQTT',
+            },
+            {
+                protocol: 'MQTTS',
+            },
+        ],
+    });
+
+    console.log('Done!');
 })()
     .then(async () => {
         await prisma
