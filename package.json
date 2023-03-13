@@ -10,7 +10,7 @@
         "build:3-copy-worker-init": "cp src/workers/init.js dist/workers/init.js",
         "build": "run-s build:*",
         "start": "node dist/index.js",
-        "db:1-migrate-dev": "prisma migrate dev",
+        "db:1-db-push": "prisma db push",
         "dev:1-prisma-studio": "prisma studio",
         "dev:2-start-server": "nodemon",
         "dev": "run-s db:* && run-p dev:*",
