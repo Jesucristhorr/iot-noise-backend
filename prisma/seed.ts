@@ -40,6 +40,7 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     name: 'System',
                 },
             },
+            active: true,
         },
     });
 
