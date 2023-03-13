@@ -46,11 +46,21 @@ model ConnectionType {
   id Int @id @default(autoincrement())
   protocol String @db.VarChar(24) @unique
   sensors Sensor[]
+  connectionDetail ConnectionDetail?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
   @@index([protocol])
+}
+
+model ConnectionDetail {
+  id Int @id @default(autoincrement())
+  details Json
+  connectionTypeId Int @unique
+  connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
+
+  @@index([connectionTypeId])
 }
 
 model PlotData {
