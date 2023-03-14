@@ -181,7 +181,7 @@ app.register(autoload, {
 });
 
 // health checker
-app.get('/ping', async () => {
+app.get('/ping', () => {
     return {
         msg: 'pong',
     };
