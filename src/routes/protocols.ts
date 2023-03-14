@@ -16,6 +16,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     protocol: true,
                     createdAt: true,
                     updatedAt: true,
+                    connectionDetail: true,
                 },
                 where: {
                     deletedAt: null,
