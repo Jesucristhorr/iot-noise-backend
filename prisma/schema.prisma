@@ -66,6 +66,15 @@ model ConnectionDetail {
   @@index([connectionTypeId])
 }
 
+model ConnectionData {
+  id Int @id @default(autoincrement())
+  connectionValues Json
+  sensor Sensor?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  deletedAt DateTime?
+}
+
 model PlotData {
   id Int @id @default(autoincrement())
   title String @db.VarChar(16) @default("Gráfica")
@@ -94,9 +103,8 @@ model Sensor {
   locationName String @db.VarChar(100)
   connectionTypeId Int
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
-  connectionUrl String @db.VarChar(255)
-  connectionUsername String @db.VarChar(100)
-  connectionPassword String @db.VarChar(100)
+  connectionDataId Int @unique
+  connectionData ConnectionData? @relation(fields: [connectionDataId], references: [id])
   plotDataId Int
   plotData PlotData @relation(fields: [plotDataId], references: [id])
   userId Int
