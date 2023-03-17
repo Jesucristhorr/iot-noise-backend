@@ -82,5 +82,12 @@ export async function prepareMQTTConnection({
         throw err;
     });
 
+    worker.on('exit', (exitCode) => {
+        fastifyInstance.log.info(
+            `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
+        );
+        return;
+    });
+
     globalThis.workersBySensorId[sensorId] = worker;
 }

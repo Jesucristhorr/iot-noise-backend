@@ -13,3 +13,9 @@ export const postSensorModel = z.object({
 });
 
 export type PostSensor = z.infer<typeof postSensorModel>;
+
+export const deleteSensorModel = z.object({
+    sensorId: z.number().int().nonnegative(),
+});
+
+export type DeleteSensor = z.infer<typeof deleteSensorModel>;

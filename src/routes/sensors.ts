@@ -1,4 +1,4 @@
-import { PostSensor } from '../models/sensors';
+import { DeleteSensor, PostSensor } from '../models/sensors';
 import { FastifyPluginAsync } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { backOff } from 'exponential-backoff';
@@ -123,9 +123,46 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 );
             }
 
-            return {
-                msg: 'Sensor created successfully!',
-            };
+            return reply.status(201).send({
+                msg: `Sensor ${sensorCreated.id} created successfully!`,
+            });
+        }
+    );
+
+    fastify.delete<{ Params: DeleteSensor }>(
+        '/:sensorId',
+        {
+            onRequest: [fastify.jwtAuthentication],
+            schema: { body: fastify.zodRef('deleteSensorModel') },
+        },
+        async ({ user, params: { sensorId } }, reply) => {
+            if (!['System', 'Admin'].includes(user.role.name))
+                return reply
+                    .status(403)
+                    .send({ code: 403, msg: `You don't have access to this resource` });
+
+            fastify.log.debug(`Delete sensor ${sensorId} in the database`);
+
+            await fastify.prisma.sensor.delete({
+                where: {
+                    id: sensorId,
+                },
+            });
+
+            fastify.log.debug(`Stop worker`);
+
+            const worker = globalThis.workersBySensorId[sensorId];
+
+            if (worker) {
+                await worker.terminate();
+
+                delete globalThis.workersBySensorId[sensorId];
+                fastify.log.debug(`Worker for sensor ${sensorId} stopped and deleted!`);
+            }
+
+            return reply.status(204).send({
+                msg: `Sensor ${sensorId} deleted successfully!`,
+            });
         }
     );
 
