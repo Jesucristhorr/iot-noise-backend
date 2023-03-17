@@ -1,10 +1,8 @@
 import { PostSensor } from '../models/sensors';
 import { FastifyPluginAsync } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
-import { Worker, SHARE_ENV } from 'worker_threads';
-import path from 'path';
-
-const workers: Worker[] = [];
+import { backOff } from 'exponential-backoff';
+import { prepareMQTTConnection } from '../helpers/mqtt';
 
 const routes: FastifyPluginAsync = async (fastify) => {
     fastify.post<{ Body: PostSensor }>(
@@ -17,7 +15,9 @@ const routes: FastifyPluginAsync = async (fastify) => {
             {
                 user,
                 body: {
-                    connection,
+                    protocolId,
+                    connectionData,
+                    measurementKeyName,
                     name,
                     description,
                     latitude,
@@ -44,12 +44,15 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     measurementUnit,
                     connectionType: {
                         connect: {
-                            id: connection.protocolId,
+                            id: protocolId,
                         },
                     },
-                    connectionUrl: connection.connectionUrl,
-                    connectionUsername: connection.connectionUsername,
-                    connectionPassword: connection.connectionPassword,
+                    measurementKeyName,
+                    connectionData: {
+                        create: {
+                            data: connectionData,
+                        },
+                    },
                     user: {
                         connect: {
                             id: user.id,
@@ -64,40 +67,61 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         },
                     },
                 },
-            });
-
-            const worker = new Worker(path.join(__dirname, '..', 'workers', 'init.js'), {
-                workerData: {
-                    path: './connectMQTT.js',
-                    sensorId: sensorCreated.id,
-                    connectionUrl: connection.connectionUrl,
-                    protocolId: 'MQTT',
-                    protocol: 'mqtts',
-                    username: connection.connectionUsername,
-                    password: connection.connectionPassword,
+                include: {
+                    connectionType: true,
                 },
-                env: SHARE_ENV,
             });
 
-            workers.push(worker);
+            const protocol = sensorCreated.connectionType.protocol.toLowerCase();
 
-            worker.on('message', (value) => {
-                fastify.log.info(value, 'emit value from mqtt:');
-                fastify.io.emit('sensor-data', {
-                    sensorId: sensorCreated.id,
-                    name: sensorCreated.name,
-                    locationName: sensorCreated.locationName,
-                    lat: +value.values.lat,
-                    lng: +value.values.lng,
-                    measurement: value.values.noiseLevel,
-                    timestamp: Date.now(),
-                });
-            });
+            if (protocol === 'mqtt' || protocol === 'mqtts') {
+                // MQTT connection
+                if (
+                    !connectionData.connectionUrl ||
+                    !connectionData.username ||
+                    !connectionData.topic
+                ) {
+                    fastify.log.info(
+                        `Sensor ${sensorCreated.id} doesn't have required properties`
+                    );
+                }
 
-            worker.on('error', (err) => {
-                // TODO: Handle exponential backoff
-                fastify.log.error(err, 'Something went wrong when creating worker:');
-            });
+                const connectionUrl = connectionData.connectionUrl as string;
+                const username = connectionData.username as string;
+                const password = connectionData.password as string | undefined;
+                const topic = connectionData.topic as string;
+
+                backOff(
+                    () =>
+                        prepareMQTTConnection({
+                            protocol,
+                            connectionUrl,
+                            sensorId: sensorCreated.id,
+                            topic,
+                            username,
+                            password,
+                            measurementKeyName,
+                            fastifyInstance: fastify,
+                        }),
+                    {
+                        delayFirstAttempt: false,
+                        maxDelay: 300,
+                        numOfAttempts: 30,
+                    }
+                )
+                    .then(() =>
+                        fastify.log.info(
+                            `Sensor ${sensorCreated.id} connected successfully!`
+                        )
+                    )
+                    .catch((err) =>
+                        fastify.log.error(err, 'Error in exponential backoff')
+                    );
+            } else {
+                fastify.log.warn(
+                    `Sensor ${sensorCreated.id} was created but protocol '${protocol}' not yet implemented`
+                );
+            }
 
             return {
                 msg: 'Sensor created successfully!',
