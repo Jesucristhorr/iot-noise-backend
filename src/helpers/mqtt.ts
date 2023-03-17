@@ -26,68 +26,96 @@ export async function prepareMQTTConnection({
     measurementKeyName: string;
     fastifyInstance: FastifyInstance;
 }) {
-    const worker = new Worker(path.join(__dirname, 'workers', WORKER_FILENAME), {
-        workerData: {
-            sensorId,
-            connectionUrl,
-            topic,
-            protocolId: 'MQTT',
-            protocol,
-            username,
-            password,
+    const sensor = await fastifyInstance.prisma.sensor.findFirst({
+        where: {
+            id: sensorId,
+            deletedAt: null,
         },
-        env: SHARE_ENV,
     });
 
-    worker.on('message', async (value) => {
-        fastifyInstance.log.info(value, 'Value emitted from mqtt:');
-        if (value && value.data) {
-            const data = value.data;
-            const measurement = data[measurementKeyName];
-            if (!measurement) {
-                fastifyInstance.log.warn(
-                    `Sensor ${sensorId} doesn't have key '${measurementKeyName}' in the data received`
-                );
-                return;
-            }
+    if (!sensor) return;
 
-            // store metric in database
-            try {
-                await fastifyInstance.prisma.metric.create({
-                    data: {
-                        value: measurement,
-                        sensor: {
-                            connect: {
-                                id: sensorId,
-                            },
-                        },
-                        uuid: uuidV4(),
-                    },
-                });
-            } catch (err) {
-                fastifyInstance.log.error(err, 'Error storing metric:');
-            }
-
-            // emit metric in web socket
-            fastifyInstance.io.emit('sensor-data', {
-                sensorId,
-                measurement,
-                timestamp: Date.now(),
+    const connectToMQTT = () => {
+        return new Promise<Worker>((resolve, reject) => {
+            const worker = new Worker(path.join(__dirname, 'workers', WORKER_FILENAME), {
+                workerData: {
+                    sensorId,
+                    connectionUrl,
+                    topic,
+                    protocolId: 'MQTT',
+                    protocol,
+                    username,
+                    password,
+                },
+                env: SHARE_ENV,
             });
-        }
-    });
 
-    worker.on('error', (err) => {
-        fastifyInstance.log.error(err, 'Something went wrong when creating worker:');
-        throw err;
-    });
+            worker.on('message', async (value) => {
+                fastifyInstance.log.info(value, 'Value emitted from mqtt:');
+                if (value && value.data) {
+                    const data = value.data;
+                    const measurement = data[measurementKeyName];
+                    if (!measurement) {
+                        fastifyInstance.log.warn(
+                            `Sensor ${sensorId} doesn't have key '${measurementKeyName}' in the data received`
+                        );
+                        return;
+                    }
 
-    worker.on('exit', (exitCode) => {
-        fastifyInstance.log.info(
-            `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
-        );
-        return;
-    });
+                    // store metric in database
+                    try {
+                        await fastifyInstance.prisma.metric.create({
+                            data: {
+                                value: measurement,
+                                sensor: {
+                                    connect: {
+                                        id: sensorId,
+                                    },
+                                },
+                                uuid: uuidV4(),
+                            },
+                        });
+                    } catch (err) {
+                        fastifyInstance.log.error(err, 'Error storing metric:');
+                    }
+
+                    // emit metric in web socket
+                    fastifyInstance.io.emit('sensor-data', {
+                        sensorId,
+                        measurement,
+                        timestamp: Date.now(),
+                    });
+                }
+            });
+
+            worker.on('error', (err) => {
+                fastifyInstance.log.error(
+                    err,
+                    'Something went wrong when creating worker:'
+                );
+                return reject(err);
+            });
+
+            worker.on('exit', (exitCode) => {
+                fastifyInstance.log.info(
+                    `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
+                );
+                return reject(exitCode);
+            });
+
+            worker.on('online', () => {
+                setTimeout(() => resolve(worker), 20 * 1000);
+            });
+        });
+    };
+
+    const worker = await connectToMQTT();
+
+    fastifyInstance.log.info(
+        `Worker with thread id ${worker.threadId} for sensor id ${sensorId} created!`
+    );
 
     globalThis.workersBySensorId[sensorId] = worker;
+
+    return;
 }
