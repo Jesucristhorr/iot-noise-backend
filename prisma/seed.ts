@@ -68,46 +68,68 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     protocol: 'MQTT',
                 },
             },
-            details: {
-                formTitle: 'Parámetros de conexión para MQTT',
-                fields: [
-                    {
-                        fieldId: 'connectionUrl',
-                        fieldLabel: 'Url de conexión',
-                        fieldMandatory: true,
-                        fieldPlaceholder: 'mqtt://test.mosquitto.org',
-                        fieldType: 'text',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'url',
-                        fieldValidationFunction: null,
-                        fieldValidationErrorText:
-                            'Por favor ingrese una url de conexión válida',
+            dataSchema: {
+                type: 'object',
+                properties: {
+                    connectionUrl: {
+                        type: 'string',
+                        format: 'uri',
                     },
+                    username: {
+                        type: 'string',
+                        minLength: 2,
+                    },
+                    password: {
+                        type: 'string',
+                    },
+                    topic: {
+                        type: 'string',
+                        minLength: 2,
+                    },
+                },
+                required: ['connectionUrl', 'username', 'topic'],
+                errorMessages: {
+                    required: {
+                        connectionUrl: 'La url de conexión es requerida',
+                        username: 'El usuario MQTT es requerido',
+                        topic: 'El tópico del broker es requerido',
+                    },
+                    properties: {
+                        connectionUrl: 'La url de conexión debe ser una url válida',
+                        username: 'El usuario debe tener mínimo 2 caracteres',
+                        password: 'La contraseña debe ser una cadena de caracteres',
+                        topic: 'El tópico debe tener mínimo 2 caracteres',
+                    },
+                },
+            },
+            uiSchema: {
+                type: 'VerticalLayout',
+                elements: [
                     {
-                        fieldId: 'username',
-                        fieldLabel: 'Usuario MQTT',
-                        fieldMandatory: true,
-                        fieldPlaceholder: 'admin',
-                        fieldType: 'text',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'regex',
-                        fieldValidationFunction: {
-                            arguments: 'value',
-                            body: 'return /[\\w\\W]{2,}/gi.test(value)',
+                        type: 'Control',
+                        scope: '#/properties/connectionUrl',
+                        label: 'Url de conexión',
+                        options: {
+                            placeholder: 'mqtt://test.mosquito.org',
                         },
-                        fieldValidationErrorText:
-                            'Por favor ingrese un usuario mínimo de 2 caracteres',
                     },
                     {
-                        fieldId: 'password',
-                        fieldLabel: 'Contraseña MQTT',
-                        fieldMandatory: false,
-                        fieldPlaceholder: 'contraseña',
-                        fieldType: 'password',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'none',
-                        fieldValidationFunction: null,
-                        fieldValidationErrorText: '',
+                        type: 'Control',
+                        scope: '#/properties/username',
+                        label: 'Usuario MQTT',
+                        options: {
+                            placeholder: 'admin',
+                        },
+                    },
+                    {
+                        type: 'Control',
+                        scope: '#/properties/password',
+                        label: 'Contraseña MQTT',
+                    },
+                    {
+                        type: 'Control',
+                        scope: '#/properties/topic',
+                        label: 'Tópico MQTT',
                     },
                 ],
             },
@@ -121,46 +143,68 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     protocol: 'MQTTS',
                 },
             },
-            details: {
-                formTitle: 'Parámetros de conexión para MQTTS',
-                fields: [
-                    {
-                        fieldId: 'connectionUrl',
-                        fieldLabel: 'Url de conexión',
-                        fieldMandatory: true,
-                        fieldPlaceholder: 'mqtt+ssl://test.mosquito.org',
-                        fieldType: 'text',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'url',
-                        fieldValidationFunction: null,
-                        fieldValidationErrorText:
-                            'Por favor ingrese una url de conexión válida',
+            dataSchema: {
+                type: 'object',
+                properties: {
+                    connectionUrl: {
+                        type: 'string',
+                        format: 'uri',
                     },
+                    username: {
+                        type: 'string',
+                        minLength: 2,
+                    },
+                    password: {
+                        type: 'string',
+                    },
+                    topic: {
+                        type: 'string',
+                        minLength: 2,
+                    },
+                },
+                required: ['connectionUrl', 'username', 'topic'],
+                errorMessages: {
+                    required: {
+                        connectionUrl: 'La url de conexión es requerida',
+                        username: 'El usuario MQTTS es requerido',
+                        topic: 'El tópico del broker es requerido',
+                    },
+                    properties: {
+                        connectionUrl: 'La url de conexión debe ser una url válida',
+                        username: 'El usuario debe tener mínimo 2 caracteres',
+                        password: 'La contraseña debe ser una cadena de caracteres',
+                        topic: 'El tópico debe tener mínimo 2 caracteres',
+                    },
+                },
+            },
+            uiSchema: {
+                type: 'VerticalLayout',
+                elements: [
                     {
-                        fieldId: 'username',
-                        fieldLabel: 'Usuario MQTT',
-                        fieldMandatory: true,
-                        fieldPlaceholder: 'admin',
-                        fieldType: 'text',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'regex',
-                        fieldValidationFunction: {
-                            arguments: 'value',
-                            body: 'return /[\\w\\W]{2,}/gi.test(value)',
+                        type: 'Control',
+                        scope: '#/properties/connectionUrl',
+                        label: 'Url de conexión',
+                        options: {
+                            placeholder: 'mqtt+ssl://test.mosquito.org',
                         },
-                        fieldValidationErrorText:
-                            'Por favor ingrese un usuario mínimo de 2 caracteres',
                     },
                     {
-                        fieldId: 'password',
-                        fieldLabel: 'Contraseña MQTT',
-                        fieldMandatory: false,
-                        fieldPlaceholder: 'contraseña',
-                        fieldType: 'password',
-                        fieldDefaultValue: '',
-                        fieldValidationType: 'none',
-                        fieldValidationFunction: null,
-                        fieldValidationErrorText: '',
+                        type: 'Control',
+                        scope: '#/properties/username',
+                        label: 'Usuario MQTTS',
+                        options: {
+                            placeholder: 'admin-ssl',
+                        },
+                    },
+                    {
+                        type: 'Control',
+                        scope: '#/properties/password',
+                        label: 'Contraseña MQTTS',
+                    },
+                    {
+                        type: 'Control',
+                        scope: '#/properties/topic',
+                        label: 'Tópico MQTTS',
                     },
                 ],
             },

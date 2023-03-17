@@ -1,3 +1,6 @@
+// GLOBALS
+globalThis.workersBySensorId = {};
+
 import { loggerConfigurationByEnv } from './config/logger';
 import { prismaPlugin } from './plugins/prisma';
 import models from './models';
@@ -10,9 +13,14 @@ import eTag from '@fastify/etag';
 import helmet from '@fastify/helmet';
 import fJwt, { UserType } from '@fastify/jwt';
 import fRedis from '@fastify/redis';
-import { Worker, SHARE_ENV } from 'worker_threads';
 import path from 'path';
 import { buildJsonSchemas } from 'fastify-zod';
+import Ajv from 'ajv';
+import type { Prisma } from '@prisma/client';
+import { prepareMQTTConnection } from './helpers/mqtt';
+import { backOff } from 'exponential-backoff';
+
+const ajv = new Ajv();
 
 // TODO: Add socket auth
 
@@ -117,59 +125,114 @@ declare module 'socket.io' {
 app.ready((err) => {
     if (err) throw err;
 
-    // app.io.use((socket, next) => {
-    //     try {
-    //         const {
-    //             handshake: {
-    //                 auth: { token = '' },
-    //             },
-    //         } = socket;
-
-    //         const { user } = app.jwt.verify(token as string) as { user: UserType };
-
-    //         socket.user = user;
-
-    //         return next();
-    //     } catch (err) {
-    //         return next(new Error('Unauthorized access to socket!'));
-    //     }
-    // });
-
     app.io.on('connection', (socket) => {
-        // const user = socket.user as UserType | undefined;
-
-        // if (!user) {
-        //     socket.disconnect();
-        //     return;
-        // }
-
         app.log.info(`Socket connected successfully: ${socket.id}`);
     });
 
-    const worker = new Worker(path.join(__dirname, 'workers', 'init.js'), {
-        workerData: {
-            path: './connectAll.js',
-        },
-        env: SHARE_ENV,
-    });
+    app.prisma.sensor
+        .findMany({
+            include: {
+                connectionData: true,
+                connectionType: {
+                    include: {
+                        connectionDetail: true,
+                    },
+                },
+            },
+            where: {
+                deletedAt: null,
+            },
+        })
+        .then(async (sensors) => {
+            for (const sensor of sensors) {
+                const connectionDataSchemaJsonValue =
+                    sensor.connectionType.connectionDetail?.dataSchema;
+                const connectionDataJsonValue = sensor.connectionData?.data;
+                if (!connectionDataSchemaJsonValue || !connectionDataJsonValue) {
+                    app.log.info(
+                        `Sensor ${sensor.id} doesn't have necessary json values`
+                    );
+                    continue;
+                }
+                if (
+                    typeof connectionDataSchemaJsonValue !== 'object' ||
+                    typeof connectionDataJsonValue !== 'object'
+                ) {
+                    app.log.info(
+                        `Sensor ${sensor.id} doesn't have a valid json data or json data schema`
+                    );
+                    continue;
+                }
 
-    worker.on('message', (value) => {
-        app.log.info(value, 'emit value from mqtt:');
-        app.io.emit('sensor-data', {
-            sensorId: value.values.sensorId,
-            name: value.values.name,
-            locationName: value.values.locationName,
-            lat: +value.values.lat,
-            lng: +value.values.lng,
-            measurement: value.values.noiseLevel,
-            timestamp: Date.now(),
+                const connectionDataSchema =
+                    connectionDataSchemaJsonValue as Prisma.JsonObject;
+                const validateData = ajv.compile(connectionDataSchema);
+                const connectionData = connectionDataJsonValue as Prisma.JsonObject;
+
+                const isValidData = validateData(connectionData);
+
+                if (!isValidData) {
+                    app.log.info(
+                        validateData.errors,
+                        `Invalid data for sensor ${sensor.id}, the following errors were emmited:`
+                    );
+                    continue;
+                }
+
+                const protocol = sensor.connectionType.protocol.toLowerCase();
+
+                if (protocol === 'mqtt' || protocol === 'mqtts') {
+                    // MQTT connection
+                    if (
+                        !connectionData.connectionUrl ||
+                        !connectionData.username ||
+                        !connectionData.topic
+                    ) {
+                        app.log.info(
+                            `Sensor ${sensor.id} doesn't have required properties`
+                        );
+                        continue;
+                    }
+
+                    const connectionUrl = connectionData.connectionUrl as string;
+                    const username = connectionData.username as string;
+                    const password = connectionData.password as string | undefined;
+                    const topic = connectionData.topic as string;
+
+                    backOff(
+                        () =>
+                            prepareMQTTConnection({
+                                protocol,
+                                connectionUrl,
+                                sensorId: sensor.id,
+                                topic,
+                                username,
+                                password,
+                                measurementKeyName: sensor.measurementKeyName,
+                                fastifyInstance: app,
+                            }),
+                        {
+                            delayFirstAttempt: false,
+                            maxDelay: 300,
+                            numOfAttempts: 30,
+                        }
+                    )
+                        .then(() =>
+                            app.log.info(`Sensor ${sensor.id} connected successfully!`)
+                        )
+                        .catch((err) =>
+                            app.log.error(err, 'Error in exponential backoff')
+                        );
+                }
+            }
+        })
+        .catch((error) => {
+            app.log.fatal(
+                error,
+                'There was an error trying to get all sensor information'
+            );
+            process.exit(1);
         });
-    });
-
-    worker.on('error', (err) => {
-        // TODO: Handle exponential backoff
-        app.log.error(err, 'Something went wrong when creating worker:');
-    });
 });
 
 // autoload routes

@@ -56,7 +56,8 @@ model ConnectionType {
 
 model ConnectionDetail {
   id Int @id @default(autoincrement())
-  details Json
+  dataSchema Json
+  uiSchema Json
   connectionTypeId Int @unique
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
   createdAt DateTime @default(now())
@@ -68,7 +69,7 @@ model ConnectionDetail {
 
 model ConnectionData {
   id Int @id @default(autoincrement())
-  connectionValues Json
+  data Json
   sensor Sensor?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())
@@ -101,6 +102,7 @@ model Sensor {
   latitude Decimal @db.Decimal(16, 10)
   longitude Decimal @db.Decimal(16, 10)
   locationName String @db.VarChar(100)
+  measurementKeyName String @db.VarChar(100) @default("measurement")
   connectionTypeId Int
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
   connectionDataId Int @unique
