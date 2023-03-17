@@ -37,18 +37,21 @@ export async function prepareMQTTConnection({
 
     const connectToMQTT = () => {
         return new Promise<Worker | null>((resolve, reject) => {
-            const worker = new Worker(path.join(__dirname, 'workers', WORKER_FILENAME), {
-                workerData: {
-                    sensorId,
-                    connectionUrl,
-                    topic,
-                    protocolId: 'MQTT',
-                    protocol,
-                    username,
-                    password,
-                },
-                env: SHARE_ENV,
-            });
+            const worker = new Worker(
+                path.join(__dirname, '..', 'workers', WORKER_FILENAME),
+                {
+                    workerData: {
+                        sensorId,
+                        connectionUrl,
+                        topic,
+                        protocolId: 'MQTT',
+                        protocol,
+                        username,
+                        password,
+                    },
+                    env: SHARE_ENV,
+                }
+            );
 
             worker.on('message', async (value) => {
                 fastifyInstance.log.info(value, 'Value emitted from mqtt:');

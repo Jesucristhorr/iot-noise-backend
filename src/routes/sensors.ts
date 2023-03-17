@@ -133,7 +133,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
         '/:sensorId',
         {
             onRequest: [fastify.jwtAuthentication],
-            schema: { body: fastify.zodRef('deleteSensorModel') },
+            schema: { params: fastify.zodRef('deleteSensorModel') },
         },
         async ({ user, params: { sensorId } }, reply) => {
             if (!['System', 'Admin'].includes(user.role.name))
@@ -160,7 +160,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 fastify.log.debug(`Worker for sensor ${sensorId} stopped and deleted!`);
             }
 
-            return reply.status(204).send({
+            return reply.status(200).send({
                 msg: `Sensor ${sensorId} deleted successfully!`,
             });
         }

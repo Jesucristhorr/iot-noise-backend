@@ -20,7 +20,9 @@ import type { Prisma } from '@prisma/client';
 import { prepareMQTTConnection } from './helpers/mqtt';
 import { backOff } from 'exponential-backoff';
 
-const ajv = new Ajv();
+const ajv = new Ajv({
+    strict: false,
+});
 
 // TODO: Add socket auth
 

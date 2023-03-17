@@ -27,6 +27,9 @@
         "baseUrl": ".",
         "typeRoots": ["./environment.d.ts"]
     },
+    "ts-node": {
+        "files": true
+    },
     "exclude": ["node_modules"],
     "include": ["./src/**/*.ts"]
 }
