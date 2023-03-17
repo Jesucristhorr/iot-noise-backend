@@ -36,7 +36,7 @@ export async function prepareMQTTConnection({
     if (!sensor) return;
 
     const connectToMQTT = () => {
-        return new Promise<Worker>((resolve, reject) => {
+        return new Promise<Worker | null>((resolve, reject) => {
             const worker = new Worker(path.join(__dirname, 'workers', WORKER_FILENAME), {
                 workerData: {
                     sensorId,
@@ -100,7 +100,7 @@ export async function prepareMQTTConnection({
                 fastifyInstance.log.info(
                     `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
                 );
-                return reject(exitCode);
+                return resolve(null);
             });
 
             worker.on('online', () => {
@@ -110,6 +110,8 @@ export async function prepareMQTTConnection({
     };
 
     const worker = await connectToMQTT();
+
+    if (!worker) return;
 
     fastifyInstance.log.info(
         `Worker with thread id ${worker.threadId} for sensor id ${sensorId} created!`
