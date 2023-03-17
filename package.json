@@ -7,7 +7,6 @@
         "prebuild": "rimraf dist",
         "build:1-generate": "prisma generate",
         "build:2-build-server": "tsc",
-        "build:3-copy-worker-init": "cp src/workers/init.js dist/workers/init.js",
         "build": "run-s build:*",
         "start": "node dist/index.js",
         "db:1-db-push": "prisma db push",
