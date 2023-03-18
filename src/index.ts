@@ -219,7 +219,7 @@ app.ready((err) => {
                             }),
                         {
                             delayFirstAttempt: false,
-                            maxDelay: 300,
+                            maxDelay: 300 * 1000,
                             numOfAttempts: 30,
                         }
                     )

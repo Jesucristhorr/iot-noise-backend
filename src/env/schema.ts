@@ -2,6 +2,11 @@ import z from 'zod';
 
 export const serverSchema = z.object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    HAS_BEEN_BUILT: z
+        .string()
+        .regex(/[1-9]+/g)
+        .default('0')
+        .transform((flag) => !!flag),
     PORT: z
         .string()
         .regex(/[1-9]+/g)

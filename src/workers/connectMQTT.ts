@@ -31,7 +31,7 @@ const wData = workerData as {
                 data,
             });
         } catch (err) {
-            console.error(err);
+            console.error('Error in MQTT message:', err);
         }
     });
 })();

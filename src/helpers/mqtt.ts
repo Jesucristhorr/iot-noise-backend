@@ -4,8 +4,7 @@ import { Worker, SHARE_ENV } from 'worker_threads';
 import { v4 as uuidV4 } from 'uuid';
 import type { FastifyInstance } from 'fastify';
 
-const WORKER_FILENAME =
-    envs.NODE_ENV !== 'development' ? 'connectMQTT.js' : 'connectMQTT.ts';
+const WORKER_FILENAME = envs.HAS_BEEN_BUILT ? 'connectMQTT.js' : 'connectMQTT.ts';
 
 export async function prepareMQTTConnection({
     sensorId,
