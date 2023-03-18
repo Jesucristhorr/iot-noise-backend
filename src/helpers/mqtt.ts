@@ -36,6 +36,7 @@ export async function prepareMQTTConnection({
 
     const connectToMQTT = (fInstance: FastifyInstance) => {
         return new Promise<Worker | null>((resolve, reject) => {
+            let timeoutId: NodeJS.Timeout | null | undefined;
             const worker = new Worker(
                 path.join(__dirname, '..', 'workers', WORKER_FILENAME),
                 {
@@ -51,6 +52,15 @@ export async function prepareMQTTConnection({
                     env: SHARE_ENV,
                 }
             );
+
+            const cleanTimeout = () => {
+                if (!timeoutId) return;
+                clearTimeout(timeoutId);
+                fInstance.log.info(
+                    `Timeout ID ${timeoutId} for sensor ${sensorId} has been cleared!`
+                );
+                return;
+            };
 
             worker.on('message', async (value) => {
                 fInstance.log.info(value, 'Value emitted from mqtt:');
@@ -92,6 +102,7 @@ export async function prepareMQTTConnection({
 
             worker.on('error', (err) => {
                 fInstance.log.error(err, 'Something went wrong when creating worker:');
+                cleanTimeout();
                 return reject(err);
             });
 
@@ -99,11 +110,12 @@ export async function prepareMQTTConnection({
                 fInstance.log.info(
                     `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
                 );
+                cleanTimeout();
                 return resolve(null);
             });
 
             worker.on('online', () => {
-                setTimeout(() => resolve(worker), 20 * 1000);
+                timeoutId = setTimeout(() => resolve(worker), 20 * 1000);
             });
         });
     };
