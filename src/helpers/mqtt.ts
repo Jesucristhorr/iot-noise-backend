@@ -35,7 +35,7 @@ export async function prepareMQTTConnection({
 
     if (!sensor) return;
 
-    const connectToMQTT = () => {
+    const connectToMQTT = (fInstance: FastifyInstance) => {
         return new Promise<Worker | null>((resolve, reject) => {
             const worker = new Worker(
                 path.join(__dirname, '..', 'workers', WORKER_FILENAME),
@@ -54,12 +54,12 @@ export async function prepareMQTTConnection({
             );
 
             worker.on('message', async (value) => {
-                fastifyInstance.log.info(value, 'Value emitted from mqtt:');
+                fInstance.log.info(value, 'Value emitted from mqtt:');
                 if (value && value.data) {
                     const data = value.data;
                     const measurement = data[measurementKeyName];
                     if (!measurement) {
-                        fastifyInstance.log.warn(
+                        fInstance.log.warn(
                             `Sensor ${sensorId} doesn't have key '${measurementKeyName}' in the data received`
                         );
                         return;
@@ -67,7 +67,7 @@ export async function prepareMQTTConnection({
 
                     // store metric in database
                     try {
-                        await fastifyInstance.prisma.metric.create({
+                        await fInstance.prisma.metric.create({
                             data: {
                                 value: measurement,
                                 sensor: {
@@ -79,11 +79,11 @@ export async function prepareMQTTConnection({
                             },
                         });
                     } catch (err) {
-                        fastifyInstance.log.error(err, 'Error storing metric:');
+                        fInstance.log.error(err, 'Error storing metric:');
                     }
 
                     // emit metric in web socket
-                    fastifyInstance.io.emit('sensor-data', {
+                    fInstance.io.emit('sensor-data', {
                         sensorId,
                         measurement,
                         timestamp: Date.now(),
@@ -92,15 +92,12 @@ export async function prepareMQTTConnection({
             });
 
             worker.on('error', (err) => {
-                fastifyInstance.log.error(
-                    err,
-                    'Something went wrong when creating worker:'
-                );
+                fInstance.log.error(err, 'Something went wrong when creating worker:');
                 return reject(err);
             });
 
             worker.on('exit', (exitCode) => {
-                fastifyInstance.log.info(
+                fInstance.log.info(
                     `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
                 );
                 return resolve(null);
@@ -112,7 +109,7 @@ export async function prepareMQTTConnection({
         });
     };
 
-    const worker = await connectToMQTT();
+    const worker = await connectToMQTT(fastifyInstance);
 
     if (!worker) return;
 

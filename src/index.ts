@@ -131,6 +131,10 @@ app.ready((err) => {
         app.log.info(`Socket connected successfully: ${socket.id}`);
     });
 
+    app.io.on('connect_error', () => {
+        app.log.error(`Socket connection error!`);
+    });
+
     app.prisma.sensor
         .findMany({
             include: {
