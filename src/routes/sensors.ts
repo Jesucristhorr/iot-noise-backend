@@ -169,7 +169,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
     fastify.get('/', async () => {
         const sensors = await fastify.prisma.sensor.findMany({
             where: { deletedAt: null },
-            include: { connectionType: true, user: true },
+            include: { connectionType: true, connectionData: true, user: true },
         });
 
         return {
