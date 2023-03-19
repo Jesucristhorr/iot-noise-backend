@@ -58,6 +58,7 @@ model ConnectionDetail {
   id Int @id @default(autoincrement())
   dataSchema Json
   uiSchema Json
+  initialData Json
   connectionTypeId Int @unique
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
   createdAt DateTime @default(now())

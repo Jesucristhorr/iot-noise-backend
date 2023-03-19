@@ -133,6 +133,12 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     },
                 ],
             },
+            initialData: {
+                connectionUrl: '',
+                username: '',
+                password: '',
+                topic: '',
+            },
         },
     });
 
@@ -207,6 +213,12 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                         label: 'Tópico MQTTS',
                     },
                 ],
+            },
+            initialData: {
+                connectionUrl: '',
+                username: '',
+                password: '',
+                topic: '',
             },
         },
     });
