@@ -5,12 +5,12 @@ import {
     signupResendEmail,
 } from './auth';
 import { getUsersModel } from './users';
-import { postSensorModel, deleteSensorModel } from './sensors';
+import { postSensorModel, deleteSensorModel, putSensorModel } from './sensors';
 import { getMetricsModel } from './metrics';
 
 export type { PostLogin, PostSignup, SignupVerify, SignupResendEmail } from './auth';
 export type { GetUsers } from './users';
-export type { PostSensor, DeleteSensor } from './sensors';
+export type { PostSensor, DeleteSensor, PutSensor } from './sensors';
 export type { GetMetrics } from './metrics';
 
 export default {
@@ -22,4 +22,5 @@ export default {
     postSensorModel,
     getMetricsModel,
     deleteSensorModel,
+    putSensorModel,
 };
