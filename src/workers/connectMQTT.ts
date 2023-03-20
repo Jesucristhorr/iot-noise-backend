@@ -27,6 +27,24 @@ const wData = workerData as {
         });
     });
 
+    mqttClient.on('packetreceive', () => {
+        parentPort?.postMessage({
+            connectionStatus: 'connected',
+        });
+    });
+
+    mqttClient.on('packetsend', () => {
+        parentPort?.postMessage({
+            connectionStatus: 'connected',
+        });
+    });
+
+    mqttClient.on('reconnect', () => {
+        parentPort?.postMessage({
+            connectionStatus: 'connected',
+        });
+    });
+
     mqttClient.on('message', async (topic, payload) => {
         try {
             const data = JSON.parse(payload.toString('utf-8'));
