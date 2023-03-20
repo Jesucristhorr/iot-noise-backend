@@ -36,6 +36,10 @@ export async function prepareMQTTConnection({
 
     const connectToMQTT = (fInstance: FastifyInstance) => {
         globalThis.connectionStatusBySensorId[sensorId] = 'pending';
+        fInstance.io.emit('sensor-status', {
+            sensorId,
+            connectionStatus: 'pending',
+        });
 
         return new Promise<Worker | null>((resolve, reject) => {
             let timeoutId: NodeJS.Timeout | null | undefined;
@@ -66,6 +70,16 @@ export async function prepareMQTTConnection({
 
             worker.on('message', async (value) => {
                 fInstance.log.info(value, 'Value emitted from mqtt:');
+
+                if (value && value.error) {
+                    globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                    fInstance.io.emit('sensor-status', {
+                        sensorId,
+                        connectionStatus: 'errored',
+                        connectionErrorMsg: value.error,
+                    });
+                }
+
                 if (value && value.data) {
                     const data = value.data;
                     const measurement = data[measurementKeyName];
@@ -89,16 +103,36 @@ export async function prepareMQTTConnection({
                                 uuid: uuidV4(),
                             },
                         });
-                    } catch (err) {
-                        fInstance.log.error(err, 'Error storing metric:');
-                    }
 
-                    // emit metric in web socket
-                    fInstance.io.emit('sensor-data', {
-                        sensorId,
-                        measurement,
-                        timestamp: Date.now(),
-                    });
+                        // emit metric in web socket
+                        fInstance.io.emit('sensor-data', {
+                            sensorId,
+                            measurement,
+                            timestamp: Date.now(),
+                        });
+
+                        // send status
+                        globalThis.connectionStatusBySensorId[sensorId] = 'connected';
+                        fInstance.io.emit('sensor-status', {
+                            sensorId,
+                            connectionStatus: 'connected',
+                        });
+                    } catch (err: unknown) {
+                        fInstance.log.error(err, 'Error storing metric:');
+                        globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                        if (err instanceof Error)
+                            fInstance.io.emit('sensor-status', {
+                                sensorId,
+                                connectionStatus: 'errored',
+                                connectionErrorMsg: err.message,
+                            });
+                        else
+                            fInstance.io.emit('sensor-status', {
+                                sensorId,
+                                connectionStatus: 'errored',
+                                connectionErrorMsg: 'Unknown error storing metric',
+                            });
+                    }
                 }
             });
 
@@ -106,6 +140,11 @@ export async function prepareMQTTConnection({
                 fInstance.log.error(err, 'Something went wrong when creating worker:');
                 cleanTimeout();
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                fInstance.io.emit('sensor-status', {
+                    sensorId,
+                    connectionStatus: 'errored',
+                    connectionErrorMsg: err.message,
+                });
                 return reject(err);
             });
 
@@ -115,12 +154,21 @@ export async function prepareMQTTConnection({
                 );
                 cleanTimeout();
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                fInstance.io.emit('sensor-status', {
+                    sensorId,
+                    connectionStatus: 'errored',
+                    connectionErrorMsg: 'Worker crashed!',
+                });
                 return resolve(null);
             });
 
             worker.on('online', () => {
                 timeoutId = setTimeout(() => {
                     globalThis.connectionStatusBySensorId[sensorId] = 'connected';
+                    fInstance.io.emit('sensor-status', {
+                        sensorId,
+                        connectionStatus: 'connected',
+                    });
                     resolve(worker);
                 }, 20 * 1000);
             });
