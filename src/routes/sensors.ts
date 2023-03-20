@@ -106,8 +106,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         }),
                     {
                         delayFirstAttempt: false,
-                        maxDelay: 300 * 1000,
-                        numOfAttempts: 30,
+                        maxDelay: 900 * 1000,
+                        numOfAttempts: Infinity,
                         retry: (_, attemptNumber) => {
                             const cancelSignal =
                                 globalThis.cancelSignalBySensorId[sensorCreated.id];
@@ -252,8 +252,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         }),
                     {
                         delayFirstAttempt: false,
-                        maxDelay: 300 * 1000,
-                        numOfAttempts: 30,
+                        maxDelay: 900 * 1000,
+                        numOfAttempts: Infinity,
                         retry: (_, attemptNumber) => {
                             const cancelSignal =
                                 globalThis.cancelSignalBySensorId[sensorId];

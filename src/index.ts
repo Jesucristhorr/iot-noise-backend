@@ -221,8 +221,8 @@ app.ready((err) => {
                             }),
                         {
                             delayFirstAttempt: false,
-                            maxDelay: 300 * 1000,
-                            numOfAttempts: 30,
+                            maxDelay: 900 * 1000,
+                            numOfAttempts: Infinity,
                             retry: (_, attemptNumber) => {
                                 const cancelSignal =
                                     globalThis.cancelSignalBySensorId[sensor.id];
