@@ -349,6 +349,9 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     sensorId,
                     connectionStatus:
                         globalThis.connectionStatusBySensorId[sensorId] ?? 'errored',
+                    connectionErrorMsg:
+                        globalThis.connectionErrorMsgsBySensorId[sensorId] ??
+                        'Unknown error',
                 },
             };
         }
@@ -366,6 +369,9 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     ...sensor,
                     connectionStatus:
                         globalThis.connectionStatusBySensorId[sensor.id] ?? 'errored',
+                    connectionErrorMsg:
+                        globalThis.connectionErrorMsgsBySensorId[sensor.id] ??
+                        'Unknown error',
                 };
             }),
         };

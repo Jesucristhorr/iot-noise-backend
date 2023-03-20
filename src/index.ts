@@ -2,6 +2,7 @@
 globalThis.workersBySensorId = {};
 globalThis.connectionStatusBySensorId = {};
 globalThis.cancelSignalBySensorId = {};
+globalThis.connectionErrorMsgsBySensorId = {};
 
 import { loggerConfigurationByEnv } from './config/logger';
 import { prismaPlugin } from './plugins/prisma';

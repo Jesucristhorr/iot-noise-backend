@@ -73,6 +73,7 @@ export async function prepareMQTTConnection({
 
                 if (value && value.error) {
                     globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                    globalThis.connectionErrorMsgsBySensorId[sensorId] = value.error;
                     fInstance.io.emit('sensor-status', {
                         sensorId,
                         connectionStatus: 'errored',
@@ -120,18 +121,23 @@ export async function prepareMQTTConnection({
                     } catch (err: unknown) {
                         fInstance.log.error(err, 'Error storing metric:');
                         globalThis.connectionStatusBySensorId[sensorId] = 'errored';
-                        if (err instanceof Error)
+                        if (err instanceof Error) {
+                            globalThis.connectionErrorMsgsBySensorId[sensorId] =
+                                err.message;
                             fInstance.io.emit('sensor-status', {
                                 sensorId,
                                 connectionStatus: 'errored',
                                 connectionErrorMsg: err.message,
                             });
-                        else
+                        } else {
+                            globalThis.connectionErrorMsgsBySensorId[sensorId] =
+                                'Unknown error storing metric';
                             fInstance.io.emit('sensor-status', {
                                 sensorId,
                                 connectionStatus: 'errored',
                                 connectionErrorMsg: 'Unknown error storing metric',
                             });
+                        }
                     }
                 }
             });
@@ -140,6 +146,7 @@ export async function prepareMQTTConnection({
                 fInstance.log.error(err, 'Something went wrong when creating worker:');
                 cleanTimeout();
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                globalThis.connectionErrorMsgsBySensorId[sensorId] = err.message;
                 fInstance.io.emit('sensor-status', {
                     sensorId,
                     connectionStatus: 'errored',
@@ -154,6 +161,7 @@ export async function prepareMQTTConnection({
                 );
                 cleanTimeout();
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                globalThis.connectionErrorMsgsBySensorId[sensorId] = 'Worker crashed!';
                 fInstance.io.emit('sensor-status', {
                     sensorId,
                     connectionStatus: 'errored',
