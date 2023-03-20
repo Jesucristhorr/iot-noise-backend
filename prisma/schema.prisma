@@ -94,10 +94,21 @@ model PlotData {
   @@index([title])
 }
 
+enum SensorTypes {
+  NOISE
+  HUMIDITY
+  TEMPERATURE
+  PRESSURE
+  LIGHT
+  POSITION
+  DISTANCE
+}
+
 model Sensor {
   id Int @id @default(autoincrement())
   uuid String @db.VarChar(36) @unique
   name String @db.VarChar(64)
+  type SensorTypes @default(NOISE)
   description String? @db.VarChar(255)
   measurementUnit String @db.VarChar(24)
   latitude Decimal @db.Decimal(16, 10)

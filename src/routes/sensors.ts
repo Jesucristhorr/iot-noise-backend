@@ -3,6 +3,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { backOff } from 'exponential-backoff';
 import { prepareMQTTConnection } from '../helpers/mqtt';
+import { SensorTypes } from '@prisma/client';
 
 const routes: FastifyPluginAsync = async (fastify) => {
     fastify.post<{ Body: PostSensor }>(
@@ -366,6 +367,12 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         'Unknown error',
                 };
             }),
+        };
+    });
+
+    fastify.get('/types', async () => {
+        return {
+            sensorTypes: Object.keys(SensorTypes).map((value) => value),
         };
     });
 };
