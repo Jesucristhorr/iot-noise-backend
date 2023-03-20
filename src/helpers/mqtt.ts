@@ -183,12 +183,15 @@ export async function prepareMQTTConnection({
                     `Worker with thread id ${worker.threadId} exited with code ${exitCode} for sensor id ${sensorId}`
                 );
                 cleanTimeout();
+                const previousMessageError =
+                    globalThis.connectionErrorMsgsBySensorId[sensorId];
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
-                globalThis.connectionErrorMsgsBySensorId[sensorId] = 'Worker crashed!';
+                globalThis.connectionErrorMsgsBySensorId[sensorId] =
+                    previousMessageError ?? 'Worker crashed!';
                 fInstance.io.emit('sensor-status', {
                     sensorId,
                     connectionStatus: 'errored',
-                    connectionErrorMsg: 'Worker crashed!',
+                    connectionErrorMsg: previousMessageError ?? 'Worker crashed!',
                 });
                 return resolve(null);
             });
