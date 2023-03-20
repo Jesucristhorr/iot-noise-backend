@@ -21,7 +21,7 @@ const wData = workerData as {
 
     await mqttClient.subscribe(wData.topic);
 
-    mqttClient.once('connect', () => {
+    mqttClient.on('connect', () => {
         parentPort?.postMessage({
             connectionStatus: 'connected',
         });
