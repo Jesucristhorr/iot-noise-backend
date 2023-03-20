@@ -90,15 +90,25 @@ export async function prepareMQTTConnection({
                         sensorId,
                         connectionStatus: 'connected',
                     });
+
+                    if (resolve) return resolve(worker);
+
                     return;
                 }
 
                 if (value && value.error) {
-                    globalThis.connectionStatusBySensorId[sensorId] = 'errored';
+                    globalThis.connectionStatusBySensorId[sensorId] =
+                        value.error.includes('Error parsing data, expected JSON')
+                            ? 'parse-issue'
+                            : 'errored';
                     globalThis.connectionErrorMsgsBySensorId[sensorId] = value.error;
                     fInstance.io.emit('sensor-status', {
                         sensorId,
-                        connectionStatus: 'errored',
+                        connectionStatus: value.error.includes(
+                            'Error parsing data, expected JSON'
+                        )
+                            ? 'parse-issue'
+                            : 'errored',
                         connectionErrorMsg: value.error,
                     });
                     return;
@@ -175,7 +185,9 @@ export async function prepareMQTTConnection({
                     connectionStatus: 'errored',
                     connectionErrorMsg: err.message,
                 });
-                return reject(err);
+                if (reject) return reject(err);
+
+                return;
             });
 
             worker.on('exit', (exitCode) => {
@@ -193,7 +205,9 @@ export async function prepareMQTTConnection({
                     connectionStatus: 'errored',
                     connectionErrorMsg: previousMessageError ?? 'Worker crashed!',
                 });
-                return resolve(null);
+                if (resolve) return resolve(null);
+
+                return;
             });
         });
     };

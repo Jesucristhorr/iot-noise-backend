@@ -60,14 +60,9 @@ const wData = workerData as {
             });
         } catch (err) {
             console.error('Error in MQTT message:', err);
-            if (err instanceof Error)
-                parentPort?.postMessage({
-                    error: err.message,
-                });
-            else
-                parentPort?.postMessage({
-                    error: 'Parsing unknown error',
-                });
+            parentPort?.postMessage({
+                error: 'Error parsing data, expected JSON',
+            });
         }
     });
 })();
