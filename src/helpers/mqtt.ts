@@ -84,7 +84,11 @@ export async function prepareMQTTConnection({
                     return;
                 }
 
-                if (value && value.connectionStatus && currentStatus !== 'connected') {
+                if (
+                    value &&
+                    value.connectionStatus &&
+                    !['parse-issue', 'connected'].includes(currentStatus ?? '')
+                ) {
                     globalThis.connectionStatusBySensorId[sensorId] = 'connected';
                     fInstance.io.emit('sensor-status', {
                         sensorId,
