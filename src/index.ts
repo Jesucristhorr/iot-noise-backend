@@ -226,8 +226,16 @@ app.ready((err) => {
                             maxDelay: 300 * 1000,
                             numOfAttempts: 30,
                             retry: (_, attemptNumber) => {
+                                const cancelSignal =
+                                    globalThis.cancelSignalBySensorId[sensor.id];
                                 app.log.info(
-                                    `Attempting to connect sensor ${sensor.id} on startup. Retry attempt: ${attemptNumber}`
+                                    `${
+                                        cancelSignal === 'retry'
+                                            ? 'Attempting'
+                                            : 'Stop trying'
+                                    } to connect sensor ${
+                                        sensor.id
+                                    } on startup. Retry attempt: ${attemptNumber}`
                                 );
                                 return (
                                     globalThis.cancelSignalBySensorId[sensor.id] ===

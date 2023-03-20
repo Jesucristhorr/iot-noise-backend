@@ -110,8 +110,16 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         maxDelay: 300 * 1000,
                         numOfAttempts: 30,
                         retry: (_, attemptNumber) => {
+                            const cancelSignal =
+                                globalThis.cancelSignalBySensorId[sensorCreated.id];
                             fastify.log.info(
-                                `Attempting to connect sensor ${sensorCreated.id} on creation. Retry attempt: ${attemptNumber}`
+                                `${
+                                    cancelSignal === 'retry'
+                                        ? 'Attempting'
+                                        : 'Stop trying'
+                                } to connect sensor ${
+                                    sensorCreated.id
+                                } on startup. Retry attempt: ${attemptNumber}`
                             );
                             return (
                                 globalThis.cancelSignalBySensorId[sensorCreated.id] ===
@@ -250,8 +258,14 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         maxDelay: 300 * 1000,
                         numOfAttempts: 30,
                         retry: (_, attemptNumber) => {
+                            const cancelSignal =
+                                globalThis.cancelSignalBySensorId[sensorId];
                             fastify.log.info(
-                                `Attempting to connect sensor ${sensorId} on update. Retry attempt: ${attemptNumber}`
+                                `${
+                                    cancelSignal === 'retry'
+                                        ? 'Attempting'
+                                        : 'Stop trying'
+                                } to connect sensor ${sensorId} on startup. Retry attempt: ${attemptNumber}`
                             );
                             return (
                                 globalThis.cancelSignalBySensorId[sensorId] === 'retry'
