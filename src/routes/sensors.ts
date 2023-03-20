@@ -1,4 +1,4 @@
-import { DeleteSensor, PostSensor, PutSensor } from '../models/sensors';
+import { DeleteSensor, GetSensorStatus, PostSensor, PutSensor } from '../models/sensors';
 import { FastifyPluginAsync } from 'fastify';
 import { v4 as uuidv4 } from 'uuid';
 import { backOff } from 'exponential-backoff';
@@ -91,6 +91,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 const password = connectionData.password as string | undefined;
                 const topic = connectionData.topic as string;
 
+                globalThis.cancelSignalBySensorId[sensorCreated.id] = 'retry';
+
                 backOff(
                     () =>
                         prepareMQTTConnection({
@@ -107,6 +109,15 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         delayFirstAttempt: false,
                         maxDelay: 300 * 1000,
                         numOfAttempts: 30,
+                        retry: (_, attemptNumber) => {
+                            fastify.log.info(
+                                `Attempting to connect sensor ${sensorCreated.id} on creation. Retry attempt: ${attemptNumber}`
+                            );
+                            return (
+                                globalThis.cancelSignalBySensorId[sensorCreated.id] ===
+                                'retry'
+                            );
+                        },
                     }
                 )
                     .then(() =>
@@ -220,6 +231,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 const password = connectionData.password as string | undefined;
                 const topic = connectionData.topic as string;
 
+                globalThis.cancelSignalBySensorId[sensorId] = 'retry';
+
                 backOff(
                     () =>
                         prepareMQTTConnection({
@@ -236,6 +249,14 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         delayFirstAttempt: false,
                         maxDelay: 300 * 1000,
                         numOfAttempts: 30,
+                        retry: (_, attemptNumber) => {
+                            fastify.log.info(
+                                `Attempting to connect sensor ${sensorId} on update. Retry attempt: ${attemptNumber}`
+                            );
+                            return (
+                                globalThis.cancelSignalBySensorId[sensorId] === 'retry'
+                            );
+                        },
                     }
                 )
                     .then(() =>
@@ -278,7 +299,9 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 },
             });
 
-            fastify.log.debug(`Stop worker`);
+            globalThis.cancelSignalBySensorId[sensorId] = 'cancel';
+
+            fastify.log.debug(`Stop worker for sensor id ${sensorId}`);
 
             const worker = globalThis.workersBySensorId[sensorId];
 
@@ -299,6 +322,24 @@ const routes: FastifyPluginAsync = async (fastify) => {
         }
     );
 
+    fastify.get<{ Params: GetSensorStatus }>(
+        '/connection-status/:sensorId',
+        {
+            schema: {
+                params: fastify.zodRef('getSensorStatusModel'),
+            },
+        },
+        async ({ params: { sensorId } }) => {
+            return {
+                sensor: {
+                    sensorId,
+                    connectionStatus:
+                        globalThis.connectionStatusBySensorId[sensorId] ?? 'errored',
+                },
+            };
+        }
+    );
+
     fastify.get('/', async () => {
         const sensors = await fastify.prisma.sensor.findMany({
             where: { deletedAt: null },
@@ -306,7 +347,13 @@ const routes: FastifyPluginAsync = async (fastify) => {
         });
 
         return {
-            sensors,
+            sensors: sensors.map((sensor) => {
+                return {
+                    ...sensor,
+                    connectionStatus:
+                        globalThis.connectionStatusBySensorId[sensor.id] ?? 'errored',
+                };
+            }),
         };
     });
 };

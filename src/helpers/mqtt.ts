@@ -35,6 +35,8 @@ export async function prepareMQTTConnection({
     if (!sensor) return;
 
     const connectToMQTT = (fInstance: FastifyInstance) => {
+        globalThis.connectionStatusBySensorId[sensorId] = 'pending';
+
         return new Promise<Worker | null>((resolve, reject) => {
             let timeoutId: NodeJS.Timeout | null | undefined;
             const worker = new Worker(
@@ -103,6 +105,7 @@ export async function prepareMQTTConnection({
             worker.on('error', (err) => {
                 fInstance.log.error(err, 'Something went wrong when creating worker:');
                 cleanTimeout();
+                globalThis.connectionStatusBySensorId[sensorId] = 'errored';
                 return reject(err);
             });
 
@@ -111,11 +114,15 @@ export async function prepareMQTTConnection({
                     `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
                 );
                 cleanTimeout();
+                globalThis.connectionStatusBySensorId[sensorId] = 'errored';
                 return resolve(null);
             });
 
             worker.on('online', () => {
-                timeoutId = setTimeout(() => resolve(worker), 20 * 1000);
+                timeoutId = setTimeout(() => {
+                    globalThis.connectionStatusBySensorId[sensorId] = 'connected';
+                    resolve(worker);
+                }, 20 * 1000);
             });
         });
     };

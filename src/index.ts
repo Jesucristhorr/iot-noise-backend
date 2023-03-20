@@ -1,5 +1,7 @@
 // GLOBALS
 globalThis.workersBySensorId = {};
+globalThis.connectionStatusBySensorId = {};
+globalThis.cancelSignalBySensorId = {};
 
 import { loggerConfigurationByEnv } from './config/logger';
 import { prismaPlugin } from './plugins/prisma';
@@ -205,6 +207,8 @@ app.ready((err) => {
                     const password = connectionData.password as string | undefined;
                     const topic = connectionData.topic as string;
 
+                    globalThis.cancelSignalBySensorId[sensor.id] = 'retry';
+
                     backOff(
                         () =>
                             prepareMQTTConnection({
@@ -221,6 +225,15 @@ app.ready((err) => {
                             delayFirstAttempt: false,
                             maxDelay: 300 * 1000,
                             numOfAttempts: 30,
+                            retry: (_, attemptNumber) => {
+                                app.log.info(
+                                    `Attempting to connect sensor ${sensor.id} on startup. Retry attempt: ${attemptNumber}`
+                                );
+                                return (
+                                    globalThis.cancelSignalBySensorId[sensor.id] ===
+                                    'retry'
+                                );
+                            },
                         }
                     )
                         .then(() =>

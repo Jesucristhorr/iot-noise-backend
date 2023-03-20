@@ -34,3 +34,9 @@ export const putSensorModel = z.object({
 });
 
 export type PutSensor = z.infer<typeof putSensorModel>;
+
+export const getSensorStatusModel = z.object({
+    sensorId: z.number().int().nonnegative(),
+});
+
+export type GetSensorStatus = z.infer<typeof getSensorStatusModel>;
