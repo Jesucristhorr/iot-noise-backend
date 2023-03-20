@@ -45,6 +45,18 @@ const wData = workerData as {
         });
     });
 
+    mqttClient.on('end', () => {
+        parentPort?.postMessage({
+            finished: true,
+        });
+    });
+
+    mqttClient.on('error', (err) => {
+        parentPort?.postMessage({
+            error: err.message,
+        });
+    });
+
     mqttClient.on('message', async (topic, payload) => {
         try {
             const data = JSON.parse(payload.toString('utf-8'));

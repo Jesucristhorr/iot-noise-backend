@@ -70,8 +70,21 @@ export async function prepareMQTTConnection({
 
             worker.on('message', async (value) => {
                 fInstance.log.info(value, 'Value emitted from mqtt:');
+                const currentStatus = globalThis.connectionStatusBySensorId[sensorId];
 
-                if (value && value.connectionStatus) {
+                if (value && value.finished) {
+                    globalThis.connectionStatusBySensorId[sensorId] = 'connected';
+                    globalThis.connectionErrorMsgsBySensorId[sensorId] =
+                        'Connection finished unexpectedly';
+                    fInstance.io.emit('sensor-status', {
+                        sensorId,
+                        connectionStatus: 'errored',
+                        connectionErrorMsg: 'Connection finished unexpectedly',
+                    });
+                    return;
+                }
+
+                if (value && value.connectionStatus && currentStatus !== 'connected') {
                     globalThis.connectionStatusBySensorId[sensorId] = 'connected';
                     fInstance.io.emit('sensor-status', {
                         sensorId,
