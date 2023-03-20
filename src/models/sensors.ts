@@ -1,7 +1,9 @@
 import z from 'zod';
+import { SensorTypes } from '@prisma/client';
 
 export const postSensorModel = z.object({
     name: z.string().max(64),
+    type: z.nativeEnum(SensorTypes).default('NOISE'),
     description: z.string().max(255),
     measurementUnit: z.string().max(24),
     latitude: z.number().min(-90).max(90),
@@ -23,6 +25,7 @@ export type DeleteSensor = z.infer<typeof deleteSensorModel>;
 export const putSensorModel = z.object({
     sensorId: z.number().int().nonnegative(),
     name: z.string().max(64),
+    type: z.nativeEnum(SensorTypes).default('NOISE'),
     description: z.string().max(255),
     measurementUnit: z.string().max(24),
     latitude: z.number().min(-90).max(90),

@@ -20,6 +20,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     connectionData,
                     measurementKeyName,
                     name,
+                    type,
                     description,
                     latitude,
                     longitude,
@@ -38,6 +39,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 data: {
                     uuid: uuidv4(),
                     name,
+                    type,
                     description,
                     latitude,
                     longitude,
@@ -160,6 +162,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                     connectionData,
                     measurementKeyName,
                     name,
+                    type,
                     description,
                     latitude,
                     longitude,
@@ -180,6 +183,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 },
                 data: {
                     name,
+                    type,
                     description,
                     latitude,
                     longitude,
