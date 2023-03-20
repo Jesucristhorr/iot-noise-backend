@@ -215,7 +215,8 @@ app.ready((err) => {
                                 topic,
                                 username: username ?? '',
                                 password,
-                                measurementKeyName: sensor.measurementKeyName,
+                                measurementKeyName:
+                                    sensor.measurementKeyName ?? undefined,
                                 fastifyInstance: app,
                             }),
                         {

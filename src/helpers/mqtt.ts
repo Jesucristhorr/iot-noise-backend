@@ -3,6 +3,7 @@ import { envs } from '../env';
 import { Worker, SHARE_ENV } from 'worker_threads';
 import { v4 as uuidV4 } from 'uuid';
 import type { FastifyInstance } from 'fastify';
+import _get from 'lodash.get';
 
 const WORKER_FILENAME = envs.HAS_BEEN_BUILT ? 'connectMQTT.js' : 'connectMQTT.ts';
 
@@ -22,7 +23,7 @@ export async function prepareMQTTConnection({
     protocol: 'wss' | 'ws' | 'mqtt' | 'mqtts' | 'tcp' | 'ssl' | 'wx' | 'wxs';
     username: string;
     password?: string;
-    measurementKeyName: string;
+    measurementKeyName?: string;
     fastifyInstance: FastifyInstance;
 }) {
     const sensor = await fastifyInstance.prisma.sensor.findFirst({
@@ -120,10 +121,16 @@ export async function prepareMQTTConnection({
 
                 if (value && value.data) {
                     const data = value.data;
-                    const measurement = data[measurementKeyName];
+
+                    let measurement = data;
+
+                    if (measurementKeyName) {
+                        measurement = _get(data, measurementKeyName);
+                    }
+
                     if (!measurement) {
                         fInstance.log.warn(
-                            `Sensor ${sensorId} doesn't have key '${measurementKeyName}' in the data received`
+                            `Sensor ${sensorId} doesn't have key path '${measurementKeyName}' in the data received`
                         );
                         return;
                     }

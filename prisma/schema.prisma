@@ -103,7 +103,7 @@ model Sensor {
   latitude Decimal @db.Decimal(16, 10)
   longitude Decimal @db.Decimal(16, 10)
   locationName String @db.VarChar(100)
-  measurementKeyName String @db.VarChar(100) @default("measurement")
+  measurementKeyName String? @db.VarChar(100)
   connectionTypeId Int
   connectionType ConnectionType @relation(fields: [connectionTypeId], references: [id])
   connectionDataId Int @unique
