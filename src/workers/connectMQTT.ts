@@ -33,12 +33,6 @@ const wData = workerData as {
         });
     });
 
-    mqttClient.on('packetsend', () => {
-        parentPort?.postMessage({
-            connectionStatus: 'connected',
-        });
-    });
-
     mqttClient.on('reconnect', () => {
         parentPort?.postMessage({
             connectionStatus: 'connected',
