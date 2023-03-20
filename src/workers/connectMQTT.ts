@@ -21,6 +21,12 @@ const wData = workerData as {
 
     await mqttClient.subscribe(wData.topic);
 
+    mqttClient.once('connect', () => {
+        parentPort?.postMessage({
+            connectionStatus: 'connected',
+        });
+    });
+
     mqttClient.on('message', async (topic, payload) => {
         try {
             const data = JSON.parse(payload.toString('utf-8'));

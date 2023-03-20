@@ -71,6 +71,15 @@ export async function prepareMQTTConnection({
             worker.on('message', async (value) => {
                 fInstance.log.info(value, 'Value emitted from mqtt:');
 
+                if (value && value.connectionStatus) {
+                    globalThis.connectionStatusBySensorId[sensorId] = 'connected';
+                    fInstance.io.emit('sensor-status', {
+                        sensorId,
+                        connectionStatus: 'connected',
+                    });
+                    return;
+                }
+
                 if (value && value.error) {
                     globalThis.connectionStatusBySensorId[sensorId] = 'errored';
                     globalThis.connectionErrorMsgsBySensorId[sensorId] = value.error;
@@ -79,6 +88,7 @@ export async function prepareMQTTConnection({
                         connectionStatus: 'errored',
                         connectionErrorMsg: value.error,
                     });
+                    return;
                 }
 
                 if (value && value.data) {
@@ -157,7 +167,7 @@ export async function prepareMQTTConnection({
 
             worker.on('exit', (exitCode) => {
                 fInstance.log.info(
-                    `Worker with thread id ${worker.threadId} exited with code ${exitCode}`
+                    `Worker with thread id ${worker.threadId} exited with code ${exitCode} for sensor id ${sensorId}`
                 );
                 cleanTimeout();
                 globalThis.connectionStatusBySensorId[sensorId] = 'errored';
@@ -168,17 +178,6 @@ export async function prepareMQTTConnection({
                     connectionErrorMsg: 'Worker crashed!',
                 });
                 return resolve(null);
-            });
-
-            worker.on('online', () => {
-                timeoutId = setTimeout(() => {
-                    globalThis.connectionStatusBySensorId[sensorId] = 'connected';
-                    fInstance.io.emit('sensor-status', {
-                        sensorId,
-                        connectionStatus: 'connected',
-                    });
-                    resolve(worker);
-                }, 20 * 1000);
             });
         });
     };
