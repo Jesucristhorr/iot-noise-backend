@@ -192,11 +192,7 @@ app.ready((err) => {
 
                 if (protocol === 'mqtt' || protocol === 'mqtts') {
                     // MQTT connection
-                    if (
-                        !connectionData.connectionUrl ||
-                        !connectionData.username ||
-                        !connectionData.topic
-                    ) {
+                    if (!connectionData.connectionUrl || !connectionData.topic) {
                         app.log.info(
                             `Sensor ${sensor.id} doesn't have required properties`
                         );
@@ -204,7 +200,7 @@ app.ready((err) => {
                     }
 
                     const connectionUrl = connectionData.connectionUrl as string;
-                    const username = connectionData.username as string;
+                    const username = connectionData.username as string | undefined;
                     const password = connectionData.password as string | undefined;
                     const topic = connectionData.topic as string;
 
@@ -217,7 +213,7 @@ app.ready((err) => {
                                 connectionUrl,
                                 sensorId: sensor.id,
                                 topic,
-                                username,
+                                username: username ?? '',
                                 password,
                                 measurementKeyName: sensor.measurementKeyName,
                                 fastifyInstance: app,

@@ -76,18 +76,14 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             if (protocol === 'mqtt' || protocol === 'mqtts') {
                 // MQTT connection
-                if (
-                    !connectionData.connectionUrl ||
-                    !connectionData.username ||
-                    !connectionData.topic
-                ) {
+                if (!connectionData.connectionUrl || !connectionData.topic) {
                     fastify.log.info(
                         `Sensor ${sensorCreated.id} doesn't have required properties`
                     );
                 }
 
                 const connectionUrl = connectionData.connectionUrl as string;
-                const username = connectionData.username as string;
+                const username = connectionData.username as string | undefined;
                 const password = connectionData.password as string | undefined;
                 const topic = connectionData.topic as string;
 
@@ -100,7 +96,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                             connectionUrl,
                             sensorId: sensorCreated.id,
                             topic,
-                            username,
+                            username: username ?? '',
                             password,
                             measurementKeyName,
                             fastifyInstance: fastify,
@@ -224,18 +220,14 @@ const routes: FastifyPluginAsync = async (fastify) => {
 
             if (protocol === 'mqtt' || protocol === 'mqtts') {
                 // MQTT connection
-                if (
-                    !connectionData.connectionUrl ||
-                    !connectionData.username ||
-                    !connectionData.topic
-                ) {
+                if (!connectionData.connectionUrl || !connectionData.topic) {
                     fastify.log.info(
                         `Sensor ${sensorCreated.id} doesn't have required properties`
                     );
                 }
 
                 const connectionUrl = connectionData.connectionUrl as string;
-                const username = connectionData.username as string;
+                const username = connectionData.username as string | undefined;
                 const password = connectionData.password as string | undefined;
                 const topic = connectionData.topic as string;
 
@@ -248,7 +240,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
                             connectionUrl,
                             sensorId: sensorCreated.id,
                             topic,
-                            username,
+                            username: username ?? '',
                             password,
                             measurementKeyName,
                             fastifyInstance: fastify,
