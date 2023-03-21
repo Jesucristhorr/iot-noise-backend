@@ -8,3 +8,13 @@ export const getUsersModel = z.object({
 });
 
 export type GetUsers = z.infer<typeof getUsersModel>;
+
+export const putUsersModel = z.object({
+    userId: z.number().int().nonnegative(),
+    displayName: z.string().min(2).max(255),
+    previousPassword: z.string().min(10).max(32),
+    password: z.string().min(10).max(32),
+    roleId: z.number().int(),
+});
+
+export type PutUsers = z.infer<typeof putUsersModel>;

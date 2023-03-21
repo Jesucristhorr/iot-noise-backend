@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
-import { GetUsers } from '../models';
+import { GetUsers, PutUsers } from '../models';
 import { envs as ENVS } from '../env';
+import { compare, hash } from 'bcrypt';
 
 const routes: FastifyPluginAsync = async (fastify) => {
     // TODO: Add Redis cache here
@@ -184,6 +185,68 @@ const routes: FastifyPluginAsync = async (fastify) => {
                         : null,
                     next: `${ENVS.BASE_API_URL}/v1/users?pageSize=${pageSize}&pageAfter=${pageBefore}`,
                 },
+            };
+        }
+    );
+
+    fastify.put<{ Body: PutUsers }>(
+        '/',
+        {
+            onRequest: [fastify.jwtAuthentication],
+            schema: { body: fastify.zodRef('putUsersModel') },
+        },
+        async (
+            { user, body: { displayName, previousPassword, password, roleId, userId } },
+            reply
+        ) => {
+            if (user.role.name !== 'System')
+                return reply
+                    .status(403)
+                    .send({ code: 403, msg: `You don't have access to this resource` });
+
+            const databaseUser = await fastify.prisma.user.findFirst({
+                where: { id: userId, active: true, deletedAt: null },
+                include: { role: true },
+            });
+
+            if (!databaseUser)
+                return reply.status(401).send({ code: 401, msg: 'User does not exist' });
+
+            const hasValidPassword = await compare(
+                databaseUser.password,
+                previousPassword
+            );
+
+            if (!hasValidPassword)
+                return reply
+                    .status(401)
+                    .send({ code: 401, msg: 'Previous password is invalid' });
+
+            const hashedPassword = await hash(password, 12);
+
+            fastify.log.debug(`Preparing to update user with id ${userId}`);
+
+            await fastify.prisma.user.update({
+                where: {
+                    id: userId,
+                },
+                data: {
+                    displayName,
+                    password: hashedPassword,
+                    active: true,
+                    role: {
+                        connect: {
+                            id: roleId,
+                        },
+                    },
+                },
+            });
+
+            fastify.log.debug(`User with id ${userId} updated successfully`);
+
+            return {
+                status: 'ok',
+                msg: `User ${userId} updated successfully!`,
             };
         }
     );

@@ -4,7 +4,7 @@ import {
     signupVerifyModel,
     signupResendEmail,
 } from './auth';
-import { getUsersModel } from './users';
+import { getUsersModel, putUsersModel } from './users';
 import {
     postSensorModel,
     deleteSensorModel,
@@ -14,7 +14,7 @@ import {
 import { getMetricsModel } from './metrics';
 
 export type { PostLogin, PostSignup, SignupVerify, SignupResendEmail } from './auth';
-export type { GetUsers } from './users';
+export type { GetUsers, PutUsers } from './users';
 export type { PostSensor, DeleteSensor, PutSensor, GetSensorStatus } from './sensors';
 export type { GetMetrics } from './metrics';
 
@@ -29,4 +29,5 @@ export default {
     deleteSensorModel,
     putSensorModel,
     getSensorStatusModel,
+    putUsersModel,
 };
