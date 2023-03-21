@@ -77,7 +77,6 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     },
                     username: {
                         type: 'string',
-                        minLength: 2,
                     },
                     password: {
                         type: 'string',
@@ -87,7 +86,7 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                         minLength: 2,
                     },
                 },
-                required: ['connectionUrl', 'username', 'topic'],
+                required: ['connectionUrl', 'topic'],
                 errorMessages: {
                     required: {
                         connectionUrl: 'La url de conexión es requerida',
@@ -158,7 +157,6 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                     },
                     username: {
                         type: 'string',
-                        minLength: 2,
                     },
                     password: {
                         type: 'string',
@@ -168,7 +166,7 @@ if (!process.env.DEFAULT_SYSTEM_USER_PASSWORD)
                         minLength: 2,
                     },
                 },
-                required: ['connectionUrl', 'username', 'topic'],
+                required: ['connectionUrl', 'topic'],
                 errorMessages: {
                     required: {
                         connectionUrl: 'La url de conexión es requerida',
