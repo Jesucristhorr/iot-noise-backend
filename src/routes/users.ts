@@ -213,8 +213,8 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 return reply.status(401).send({ code: 401, msg: 'User does not exist' });
 
             const hasValidPassword = await compare(
-                databaseUser.password,
-                previousPassword
+                previousPassword,
+                databaseUser.password
             );
 
             if (!hasValidPassword)
