@@ -18,3 +18,9 @@ export const putUsersModel = z.object({
 });
 
 export type PutUsers = z.infer<typeof putUsersModel>;
+
+export const deleteUsersModel = z.object({
+    userId: z.number().int().nonnegative(),
+});
+
+export type DeleteUsers = z.infer<typeof deleteUsersModel>;

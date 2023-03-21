@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { GetUsers, PutUsers } from '../models';
+import { DeleteUsers, GetUsers, PutUsers } from '../models';
 import { envs as ENVS } from '../env';
 import { compare, hash } from 'bcrypt';
 
@@ -248,6 +248,32 @@ const routes: FastifyPluginAsync = async (fastify) => {
                 status: 'ok',
                 msg: `User ${userId} updated successfully!`,
             };
+        }
+    );
+
+    fastify.delete<{ Params: DeleteUsers }>(
+        '/:userId',
+        {
+            onRequest: [fastify.jwtAuthentication],
+            schema: { params: fastify.zodRef('deleteUsersModel') },
+        },
+        async ({ user, params: { userId } }, reply) => {
+            if (!['System'].includes(user.role.name))
+                return reply
+                    .status(403)
+                    .send({ code: 403, msg: `You don't have access to this resource` });
+
+            fastify.log.debug(`Delete user with id ${userId} in the database`);
+
+            await fastify.prisma.user.delete({
+                where: {
+                    id: userId,
+                },
+            });
+
+            return reply.status(200).send({
+                msg: `User with id ${userId} deleted successfully!`,
+            });
         }
     );
 };
